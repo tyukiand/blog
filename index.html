@@ -16,8 +16,7 @@ layout: main
       <p>
         <a 
           href="{{ site.baseurl }}{{ post.url }}#commentsBookmark"
-          data-disqus-identifier="{{ post.commentsId }}"
-        >Comments</a>
+        >Show comments</a>
       </p>
     {% else %}
       {{ abstract }} 
@@ -26,13 +25,9 @@ layout: main
           href="{{ site.baseurl }}{{ post.url }}"
           style="margin-right: 10px"
         >Read more</a>
-        <span
-          class="disqus-comment-count"
-          data-disqus-identifier="{{ post.commentsId }}"
-        ></span>
         <a 
           href="{{ site.baseurl }}{{ post.url }}#commentsBookmark"
-        >Comments</a>
+        >Show comments</a>
       </p>
     {% endif %}
   </p>

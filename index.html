@@ -15,7 +15,7 @@ layout: default
     {% else %}
       {{ abstract }} 
       <p>
-        <a href="{{ post.url }}">Read more</a>
+        <a href="{{ site.baseurl }}{{ post.url }}">Read more</a>
       </p>
     {% endif %}
   </p>
@@ -34,7 +34,7 @@ layout: default
           /page{{ paginator.previous_page }} 
         {% endcapture %}
       {% endif %}
-      <li><a href="{{ prevLink }}">Newer posts</a></li>
+      <li><a href="{{ site.baseurl }}{{ prevLink }}">Newer posts</a></li>
     {% endif %}
     {% for count in (1..paginator.total_pages) %}
       {% if count == paginator.page %}
@@ -47,11 +47,11 @@ layout: default
             /page{{ count }} 
           {% endcapture %}
         {% endif %}
-      <li><a href="{{ pageLink }}">{{ count }}</a></li>
+      <li><a href="{{site.baseurl}}{{ pageLink }}">{{ count }}</a></li>
       {% endif %}
     {% endfor %}
     {% if paginator.next_page %}
-      <li><a href="/page{{ paginator.next_page }}">Older posts</a></li>
+      <li><a href="{{site.baseurl}}/page{{ paginator.next_page }}">Older posts</a></li>
     {% endif %}
   </ul>
 </div>

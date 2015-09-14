@@ -61,7 +61,7 @@
               {% if post.url == page.url %}
                 <li><span class="active">{{ post.title }}</span></li>
               {% else %}
-                <li><a href="{{ post.url }}">{{ post.title }}</a></li>
+                <li><a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a></li>
               {% endif %}
             {% endif %}
           {% endfor %}
@@ -71,10 +71,10 @@
           <code>{{page.series}}</code>
         </h4>
         {% if seriesPrev %}
-          <p> Previous: <a href="{{ seriesPrev.url }}">{{ seriesPrev.title }}</a></p>
+          <p> Previous: <a href="{{ site.baseurl}}{{ seriesPrev.url }}">{{ seriesPrev.title }}</a></p>
         {% endif %}
         {% if seriesNext %}
-          <p> Next: <a href="{{ seriesNext.url }}">{{ seriesNext.title }}</a></p>
+          <p> Next: <a href="{{ site.baseurl }}{{ seriesNext.url }}">{{ seriesNext.title }}</a></p>
         {% endif %}
         <h4> Content of <code>{{page.series}}</code> series: </h4>
         <p> {{ listOfAllPostsInSeries }} </p>
@@ -85,7 +85,7 @@
       <div style="margin-top: 10px">
         Tags:
         {% for t in page.tags %}
-          <a class="btn btn-info" role="button"  href="/tags/#{{t}}">{{ t }}</a>
+          <a class="btn btn-info" role="button"  href="{{ site.baseurl }}/tags/#{{t}}">{{ t }}</a>
         {% endfor %}
       </div>
     </div>

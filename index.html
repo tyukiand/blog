@@ -43,9 +43,7 @@ layout: default
         {% if count == 1 %}
           {% assign pageLink = "/" %}
         {% else %}
-          {% capture pageLink %}
-            /page{{ count }} 
-          {% endcapture %}
+          {% capture pageLink %}/page{{ count }}{% endcapture %}
         {% endif %}
       <li><a href="{{site.baseurl}}{{ pageLink }}">{{ count }}</a></li>
       {% endif %}

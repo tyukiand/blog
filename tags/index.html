@@ -1,0 +1,54 @@
+---
+layout: default
+title: Tags
+---
+{% capture tagKeys %}
+  {% for t in site.tags %}
+    {{ t[0] }}
+  {% endfor %}
+{% endcapture %}
+
+{% assign sortedKeys = tagKeys | split: ' ' | sort %}
+
+<h2> All tags: </h2>
+<table>
+  <tbody>
+    {% assign columnIdx = '0' %}
+    {% for t in sortedKeys %}
+      
+      {% if columnIdx == '0' %}
+        <tr>
+      {% endif %}
+
+        <td style="padding: 2px">
+          <a class="btn btn-info" href="#{{t}}">{{ t }}</a>
+        </td>
+      {% capture columnIdx %}{{columnIdx | plus: '1'}}{% endcapture %}
+      
+      {% if columnIdx == '5' %}
+        </tr>
+        {% assign columnIdx = '0' %}
+      {% endif %}
+    {% endfor %}
+    
+    {% if columnIdx != '5' %} 
+      {% for i in (columnIdx..4) %}
+        <td><!-- intentionally left blank --></td>
+      {% endfor %}
+      </tr>
+    {% endif %}
+    
+  </tbody>
+</table>
+
+{% for t in sortedKeys %} 
+  {% assign sortedPosts = site.tags[t] | sort: 'date' %}
+  <p>
+    <h3><code id="{{ t }}">{{ t }}</code></h3>
+    <ul>
+    {% for p in sortedPosts %} 
+      <li><span>{{ p.date | date: '%Y-%m-%d'}}</span> <a href = "{{ p.url }}" >{{ p.title }}</a></li>
+    {% endfor %}
+    </ul>
+  </p>
+{% endfor %}

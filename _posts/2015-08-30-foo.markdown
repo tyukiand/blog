@@ -1,0 +1,7 @@
+---
+title: Idfidoi idiohiot idaoubkxuxskxqikcxj
+layout: post
+series: dummy
+tags: [foo, bar]
+---
+Here is some math:  <span>\\(a \in A\\)</span>

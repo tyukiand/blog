@@ -1,0 +1,101 @@
+{% include header.html %}
+
+{% include navigation.html %}
+
+<div class="container-fluid" style="padding-top: 47px">
+  <div class="row">
+    <div class="col-xs-0 col-md-0 col-lg-1">
+      <!-- intentionally left blank -->
+    </div>
+    <div class="col-xs-12 col-md-8 col-lg-7">
+      <h1>{{ page.title }}</h1>
+      <p class="muted">{{ page.date | date: "%Y-%m-%d" }}</p>
+      <div style="border-bottom-style:solid;border-width:thin;border-color:#A0A0A0">
+        {{ content }}
+      </div>
+      <!-- show "series-paginator" -->
+      {% if page.series %} 
+      <div>
+        {% comment %} 
+          The following three variables are set during the
+          iteration throught the list of all posts
+        {% endcomment %}
+        {% assign seriesPrev = nil %}
+        {% assign seriesNext = nil %}
+        {% assign overridePrev = true %}
+        {% assign overrideNext = false %}
+        {% capture listOfAllPostsInSeries %}
+        <ol> <!-- class="pagination" maybe?-->
+          {% for post in site.posts reversed %}
+            {% if post.series == page.series %}
+
+              {% comment %} 
+                Here we find previous/next post in this series.
+                It has nothing to do with the list construction, 
+                I just didn't want to iterate twice.
+                Notice that we have to compare current url twice
+                to get the both previous and next right. It's a 
+                little tricky.
+              {% endcomment %}
+
+              {% if post.url == page.url %}
+                {% assign overridePrev = false %}
+              {% endif %}
+
+              {% if overridePrev %}
+                {% assign seriesPrev = post %}
+              {% endif %}
+
+              {% if overrideNext %}
+                {% assign seriesNext = post %}
+                {% assign overrideNext = false %}
+              {% endif %}
+
+              {% if post.url == page.url %}
+                {% assign overrideNext = true %}
+              {% endif %}              
+
+              {% comment %}
+                Now we build the actual list 
+              {% endcomment %}
+              {% if post.url == page.url %}
+                <li><span class="active">{{ post.title }}</span></li>
+              {% else %}
+                <li><a href="{{ post.url }}">{{ post.title }}</a></li>
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+        </ol>
+        {% endcapture %}
+        <h4> You are reading the series: 
+          <code>{{page.series}}</code>
+        </h4>
+        {% if seriesPrev %}
+          <p> Previous: <a href="{{ seriesPrev.url }}">{{ seriesPrev.title }}</a></p>
+        {% endif %}
+        {% if seriesNext %}
+          <p> Next: <a href="{{ seriesNext.url }}">{{ seriesNext.title }}</a></p>
+        {% endif %}
+        <h4> Content of <code>{{page.series}}</code> series: </h4>
+        <p> {{ listOfAllPostsInSeries }} </p>
+      </div>
+      {% endif %}
+      <hr>
+      <!-- enumerate all tags of this post -->
+      <div style="margin-top: 10px">
+        Tags:
+        {% for t in page.tags %}
+          <a class="btn btn-info" role="button"  href="/tags/#{{t}}">{{ t }}</a>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="col-xs-12 col-md-4 col-lg-3">
+      {% include sidebar.html %}
+    </div>
+    <div class="col-xs-0 col-md-0 col-lg-1">
+      <!-- intentionally left blank -->
+    </div>
+  </div>
+</div>
+
+{% include footer.html %}

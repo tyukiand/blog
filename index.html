@@ -1,0 +1,57 @@
+---
+title: tyukiand
+layout: default
+---
+{% for post in paginator.posts %}
+<div style="border-bottom-style:solid;border-width:thin;border-color:#A0A0A0">
+  <h2>{{ post.title }}</h2>
+  <h4>{{ post.date | date: "%Y-%m-%d"}}</h4>
+  <p> 
+    {% assign abstract = (post.content | split:"<!-- cut -->" | first) %}
+    {% assign abstractSize = (abstract | size) %}
+    {% assign contentSize = (post.content | size) %}
+    {% if contentSize == abstractSize %}
+      {{ post.content }}
+    {% else %}
+      {{ abstract }} 
+      <p>
+        <a href="{{ post.url }}">Read more</a>
+      </p>
+    {% endif %}
+  </p>
+</div>
+{% endfor %}
+
+
+<div>
+  <ul class="pagination">
+    <!-- the paginator is somehow crazy... it handles first page differently -->
+    {% if paginator.previous_page %}
+      {% if paginator.previous_page == 1 %}
+        {% assign prevLink = "/" %}
+      {% else %}
+        {% capture prevLink %}
+          /page{{ paginator.previous_page }} 
+        {% endcapture %}
+      {% endif %}
+      <li><a href="{{ prevLink }}">Newer posts</a></li>
+    {% endif %}
+    {% for count in (1..paginator.total_pages) %}
+      {% if count == paginator.page %}
+      <li><span class="active">{{ count }}</span></li>
+      {% else %}
+        {% if count == 1 %}
+          {% assign pageLink = "/" %}
+        {% else %}
+          {% capture pageLink %}
+            /page{{ count }} 
+          {% endcapture %}
+        {% endif %}
+      <li><a href="{{ pageLink }}">{{ count }}</a></li>
+      {% endif %}
+    {% endfor %}
+    {% if paginator.next_page %}
+      <li><a href="/page{{ paginator.next_page }}">Older posts</a></li>
+    {% endif %}
+  </ul>
+</div>

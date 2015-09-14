@@ -1,0 +1,14 @@
+# source: ./_posts
+destination: ./_site
+future: true
+lsi: true
+paginate: 3
+permalink: pretty
+highlighter: pygments
+
+defaults:
+  -
+    scope:
+      path: "" # an empty string here means all files in the project
+    values:
+      layout: "default"

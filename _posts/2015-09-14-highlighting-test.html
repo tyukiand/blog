@@ -1,0 +1,88 @@
+---
+title: Math and code highlighting
+category: blog-documentation
+series: blog-setup
+layout: post
+date: 2015-09-14 17:30:45
+tags: blog-docs
+---
+Some examples of highlighted code.
+
+<!-- cut -->
+<h2>Scala</h2>
+<p> Some Scala code (excerpt from <a href="https://github.com/scala/scala/blob/v2.11.7/src/library/scala/collection/immutable/List.scala#L1">Scala standard library</a>) </p>
+{% highlight scala %}
+  sealed abstract class List[+A] extends AbstractSeq[A]
+                                  with LinearSeq[A]
+                                  with Product
+                                  with GenericTraversableTemplate[A, List]
+                                  with LinearSeqOptimized[A, List[A]]
+                                  with Serializable {
+  override def companion: GenericCompanion[List] = List
+
+  import scala.collection.{Iterable, Traversable, Seq, IndexedSeq}
+
+  def isEmpty: Boolean
+  def head: A
+  def tail: List[A]
+
+  // New methods in List
+
+  /** Adds an element at the beginning of this list.
+   *  @param x the element to prepend.
+   *  @return  a list which contains `x` as first element and
+   *           which continues with this list.
+   *
+   *  @usecase def ::(x: A): List[A]
+   *    @inheritdoc
+   *
+   *    Example:
+   *    {{{1 :: List(2, 3) = List(2, 3).::(1) = List(1, 2, 3)}}}
+   */
+  def ::[B >: A] (x: B): List[B] =
+    new scala.collection.immutable.::(x, this)
+
+  /** Adds the elements of a given list in front of this list.
+   *  @param prefix  The list elements to prepend.
+   *  @return a list resulting from the concatenation of the given
+   *    list `prefix` and this list.
+   *
+   *  @usecase def :::(prefix: List[A]): List[A]
+   *    @inheritdoc
+   *
+   *    Example:
+   *    {{{List(1, 2) ::: List(3, 4) = List(3, 4).:::(List(1, 2)) = List(1, 2, 3, 4)}}}
+   */
+  def :::[B >: A](prefix: List[B]): List[B] =
+    if (isEmpty) prefix
+    else if (prefix.isEmpty) this
+    else (new ListBuffer[B] ++= prefix).prependToList(this)
+{% endhighlight %}
+
+<h2>Haskell</h2>
+<p> Some haskell code (copy pasted from <a href="https://en.wikipedia.org/wiki/Haskell_%28programming_language%29">Wikipedia</a>)</p>
+{% highlight haskell %}
+-- Type annotation (optional)
+factorial :: (Integral a) => a -> a
+
+-- Using recursion
+factorial n | n < 2 = 1
+factorial n = n * factorial (n - 1)
+
+-- Using recursion, with guards
+factorial n
+  | n < 2     = 1
+  | otherwise = n * factorial (n - 1)
+
+-- Using recursion but written without pattern matching
+factorial n = if n > 0 then n * factorial (n-1) else 1
+
+-- Using a list
+factorial n = product [1..n]
+
+-- Using fold (implements product)
+factorial n = foldl (*) 1 [1..n]
+
+-- Point-free style
+factorial = foldr (*) 1 . enumFromTo 1
+{% endhighlight %}

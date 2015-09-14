@@ -4,9 +4,29 @@ layout: main
 ---
 
 {% for post in paginator.posts %}
+{% capture tagLinks %}
+{% if post.tags.size > 0 %}
+<span style="margin-left:1em">
+  Tags:
+  {% for t in post.tags %}
+    <a class="btn btn-default" role="button"  href="{{ site.baseurl }}/tags/#{{t}}">{{ t }}</a>
+  {% endfor %}
+</span>
+{% endif %}
+{% endcapture %}
 <div style="border-bottom-style:solid;border-width:thin;border-color:#A0A0A0">
   <h1>{{ post.title }}</h1>
-  <h4>{{ post.date | date: "%Y-%m-%d"}}</h4>
+  <p>
+    {{ post.date | date: "%Y-%m-%d"}}
+
+    {% comment %}
+    {% if post.category %}
+      <span style="margin-left:1em">
+        Category: <code>{{post.category}}</code>
+      </span>
+    {% endif %}
+    {% endcomment %}
+  </p>
   <p> 
     {% assign abstract = (post.content | split:"<!-- cut -->" | first) %}
     {% assign abstractSize = (abstract | size) %}
@@ -17,6 +37,7 @@ layout: main
         <a 
           href="{{ site.baseurl }}{{ post.url }}#commentsBookmark"
         >Show comments</a>
+        {{ tagLinks }}
       </p>
     {% else %}
       {{ abstract }} 
@@ -28,8 +49,10 @@ layout: main
         <a 
           href="{{ site.baseurl }}{{ post.url }}#commentsBookmark"
         >Show comments</a>
+        {{ tagLinks }}
       </p>
     {% endif %}
+    
   </p>
 </div>
 {% endfor %}

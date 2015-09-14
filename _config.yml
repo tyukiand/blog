@@ -1,5 +1,6 @@
 # source: ./_posts
 destination: ./_site
+baseurl: "/blog"
 future: true
 lsi: true
 paginate: 3

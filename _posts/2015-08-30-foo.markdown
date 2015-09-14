@@ -1,9 +1,0 @@
----
-title: Idfidoi idiohiot idaoubkxuxskxqikcxj
-layout: post
-series: dummy
-tags: [foo, bar]
-category: test
-commentsId: idiohiot2663463453
----
-Here is some math:  <span>\\(a \in A\\)</span>

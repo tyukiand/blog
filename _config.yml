@@ -3,8 +3,7 @@ destination: ./_site
 baseurl: "/blog"
 future: true
 lsi: true
-paginate: 3
-permalink: pretty
+paginate: 10
 highlighter: pygments
 permalink: none
 disqusShortname: "tyukiand-blog"

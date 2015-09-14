@@ -3,6 +3,8 @@ title: Lipsum
 layout: post
 tags: [lipsum,foo,bar,blah]
 series: set
+category: blah
+commentsId: lipsum2635345
 ---
 vestibulum 
 

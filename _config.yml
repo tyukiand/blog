@@ -6,6 +6,8 @@ lsi: true
 paginate: 3
 permalink: pretty
 highlighter: pygments
+permalink: none
+disqusShortname: "tyukiand-blog"
 
 defaults:
   -

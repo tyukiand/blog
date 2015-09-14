@@ -41,11 +41,10 @@ layout: default
       <li><span class="active">{{ count }}</span></li>
       {% else %}
         {% if count == 1 %}
-          {% assign pageLink = "/" %}
+          <li><a href="{{site.baseurl}}/">{{ count }}</a></li>
         {% else %}
-          {% capture pageLink %}/page{{ count }}{% endcapture %}
+          <li><a href="{{site.baseurl}}/page{{ count }}">{{ count }}</a></li>
         {% endif %}
-      <li><a href="{{site.baseurl}}{{ pageLink }}">{{ count }}</a></li>
       {% endif %}
     {% endfor %}
     {% if paginator.next_page %}

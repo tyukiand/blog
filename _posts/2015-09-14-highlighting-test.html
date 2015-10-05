@@ -6,11 +6,63 @@ layout: post
 date: 2015-09-14 17:30:45
 tags: blog-docs
 ---
-Some examples of highlighted code.
+Some examples of typeset math and highlighted code.
 
 <!-- cut -->
-<h2>Scala</h2>
-<p> Some Scala code (excerpt from <a href="https://github.com/scala/scala/blob/v2.11.7/src/library/scala/collection/immutable/List.scala#L1">Scala standard library</a>) </p>
+
+<h2>Math</h2>
+<p>
+  Inline math: <code>\(blah\)</code>, display math: <code>\[blah\]</code>.
+  All the basic LaTex-stuff seems to be supported.
+
+  Check this: <a href = "http://docs.mathjax.org/en/latest/start.html">MathJax documentation</a>.
+</p>
+<p>
+Here is some inline math: \(e^{i \pi} + 1 = 0\).
+Expression with common functions: \(\forall\,x\in\mathbb{R}:\,\cos(x)^2 + \sin(x)^2 = 1\). Let's try a larger formula in display mode:
+\[
+  \lim_{n\to\infty}\left(1 + \frac{\alpha}{n}\right)^n = e^\alpha
+\]
+Everything looks fabulous so far. What does the blackboard bold font look like?
+\[
+  \mathbb{E}[X \vert \mathcal{F}] = 
+    \sum_{A \textrm{ atom of } F} \frac{\mathbb{E}[1_A \cdot X]}{\mathbb{P}[A]}
+    1_A
+\]
+I don't like the thin ones... But that's acceptable. What about weirder symbols?
+\[
+  \pi_1(\mathbb{S}^1\times\mathbb{S}^1) = \mathbb{Z}\otimes\mathbb{Z}
+\]
+Ok, all those <code>o-blah</code>-thingies are there. 
+What do integrals look like?
+\[
+  \int_{\partial A} \omega = \int_A d\omega
+\]
+\[
+  \int_0^s f(X_t) dX_t =
+    \sum_{i=1}^d \int_0^s \partial_i f(X_t) dX^i_t +
+    \sum_{i,j=1}^d \int_0^s \partial_i\partial_j f(X_t) \langle X^i,X^j\rangle_t
+\]
+Acceptable. Does <code>textrm</code> work?
+\[
+  \mathrm{Nat}[\mathrm{Hom}_{\mathrm{Sets}}[A,-], F] \simeq F[A]
+\]
+Allright, this looks cute. Let's look at how code highlighting works.
+</p>
+
+<h2>Syntax highlighting</h2>
+<p>
+In order to highlight code, simply put your code into the <code>highlight</code> block:
+{% highlight liquid %}
+{% raw %}
+{% highlight yourLanguage %}
+  yourCode = awesome
+{% endhighlight %}
+{% endraw %}
+{% endhighlight %}
+</p>
+
+<p> A piece of Scala code (excerpt from <a href="https://github.com/scala/scala/blob/v2.11.7/src/library/scala/collection/immutable/List.scala#L1">Scala standard library</a>) 
 {% highlight scala %}
   sealed abstract class List[+A] extends AbstractSeq[A]
                                   with LinearSeq[A]
@@ -42,25 +94,10 @@ Some examples of highlighted code.
   def ::[B >: A] (x: B): List[B] =
     new scala.collection.immutable.::(x, this)
 
-  /** Adds the elements of a given list in front of this list.
-   *  @param prefix  The list elements to prepend.
-   *  @return a list resulting from the concatenation of the given
-   *    list `prefix` and this list.
-   *
-   *  @usecase def :::(prefix: List[A]): List[A]
-   *    @inheritdoc
-   *
-   *    Example:
-   *    {{{List(1, 2) ::: List(3, 4) = List(3, 4).:::(List(1, 2)) = List(1, 2, 3, 4)}}}
-   */
-  def :::[B >: A](prefix: List[B]): List[B] =
-    if (isEmpty) prefix
-    else if (prefix.isEmpty) this
-    else (new ListBuffer[B] ++= prefix).prependToList(this)
 {% endhighlight %}
+</p>
 
-<h2>Haskell</h2>
-<p> Some haskell code (copy pasted from <a href="https://en.wikipedia.org/wiki/Haskell_%28programming_language%29">Wikipedia</a>)</p>
+<p> Some haskell code (copy pasted from <a href="https://en.wikipedia.org/wiki/Haskell_%28programming_language%29">Wikipedia</a>)
 {% highlight haskell %}
 -- Type annotation (optional)
 factorial :: (Integral a) => a -> a
@@ -74,15 +111,46 @@ factorial n
   | n < 2     = 1
   | otherwise = n * factorial (n - 1)
 
--- Using recursion but written without pattern matching
-factorial n = if n > 0 then n * factorial (n-1) else 1
-
--- Using a list
-factorial n = product [1..n]
-
--- Using fold (implements product)
-factorial n = foldl (*) 1 [1..n]
-
--- Point-free style
-factorial = foldr (*) 1 . enumFromTo 1
 {% endhighlight %}
+</p>
+
+<p>
+Javascript should not wreak havoc (would be bad if it just got interpreted somehow).
+{% highlight javascript %}
+function freeze() {
+  while (true) {
+    console.log("if this gets executed, your browser will complain")
+  }
+}
+freeze();
+{% endhighlight %}
+
+Let's try to execute an "html-injection" and break this page:
+{% highlight html %}
+  </div>
+  <div style="background:red">
+   blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah  
+  </div>
+  </body>
+</html>
+{% endhighlight %}
+Looks good, Liquid engine seems to be able to cope with that, all tags are transformed into <code>&amp;lt;tagName&amp;gt;</code>, this is good.
+</p>
+
+<p>
+Can we somehow highlight jekyll/liquid code?
+{% highlight liquid %}
+{% raw %}
+{% highlight blah %}
+  {% this thing looks like Liquid expression %}
+{% endhighlight %}
+{% endraw %}
+{% endhighlight %}
+This kind of works with <code>raw</code>/<code>endraw</code>-blocks, but it's not quite clear how one could highlight stuff that contains <code>raw</code> and <code>endraw</code> itself... But that's not so interesting, don't want 
+to write anything about Jekyll anyway.
+</p>
+
+<p>
+  Allright, code highlighting seems to work just fine.
+</p>
+

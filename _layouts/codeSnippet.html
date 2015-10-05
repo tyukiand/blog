@@ -1,0 +1,47 @@
+{% include header.html %}
+{% include navigation.html %}
+<div class="container-fluid" style="padding-top: 47px">
+  <div class="row">
+    <div class="col-xs-0 col-md-0 col-lg-1">
+      <!-- intentionally left blank -->
+    </div>
+    <div class="col-xs-12 col-md-8 col-lg-7">
+      {% for sourceFileAndType in page.sourceCodeFiles %}
+        <h3>{{ sourceFileAndType[0] }}</h3>
+        {% assign file = sourceFileAndType[0] %}
+        {% assign lang = sourceFileAndType[1] %}
+        {% if lang == "scala" %}
+          {% highlight scala %}
+            {% include_relative {{ file }} %}
+          {% endhighlight %}
+        {% elsif lang == "haskell" %}
+          {% highlight haskell %}
+            {% include_relative {{ file }} %}
+          {% endhighlight %}
+        {% elsif lang == "ruby" %}
+          {% highlight ruby %}
+            {% include_relative {{ file }} %}
+          {% endhighlight %}
+        {% else %}
+          {% highlight scala %}
+            {% include_relative {{ file }} %}
+          {% endhighlight %}
+        {% endif %}
+Just in case that Jekyll or syntax highlighter breaks anything, 
+here is the 
+<a href="{{ site.baseurl }}/{{ page.path | remove: 'index.html' }}{{ file }}">
+  original file
+</a>.
+      {% endfor %}
+
+      {{ page.content }}
+    </div>
+    <div class="col-xs-12 col-md-4 col-lg-3">
+      {% include sidebar.html %}
+    </div>
+    <div class="col-xs-0 col-md-0 col-lg-1">
+      <!-- intentionally left blank -->
+    </div>
+  </div>
+</div>
+{% include footer.html %}

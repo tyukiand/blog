@@ -8,8 +8,28 @@
   <meta name="description" content="{{ site.description }}">
   <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" integrity="sha256-MfvZlkHCEqatNoGiOXveE8FIwMzZg4W85qfrfIFBfYc= sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
   <link rel="stylesheet" href="{{ site.baseurl }}/css/pygments/syntax.css">
-  <link rel="stylesheet" href="{{ site.baseurl }}/css/navigation.css">
+  <link rel="stylesheet" href="{{ site.baseurl }}/css/custom.css">
+  
+  {% if page.stylesheets %}
+    {% for s in page.stylesheets %} 
+      <link rel="stylesheet" href="{{ site.baseurl }}{{s}}">
+    {% endfor %}
+  {% else %}
+    <!-- no extra stylesheets for this page -->
+  {% endif %}
+
+  {% if page.scripts %}
+    {% for s in page.scripts %} 
+      <script src="{{s}}"></script>
+    {% endfor %}
+  {% else %}  
+    <!-- no extra scripts for this page -->
+  {% endif %}
+
 </head>
 
+{% if page.onload %}
+<body onload="{{ page.onload }}">
+{% else %}
 <body>
-    
+{% endif %}

@@ -11,7 +11,7 @@ title: Tags
 {% assign sortedKeys = tagKeys | split: ' ' | sort %}
 
 <h2> All tags: </h2>
-<table>
+<table style="border-width: 0">
   <tbody>
     {% assign columnIdx = '0' %}
     {% for t in sortedKeys %}
@@ -20,7 +20,7 @@ title: Tags
         <tr>
       {% endif %}
 
-        <td style="padding: 2px">
+        <td style="padding: 2px; border-width:0">
           <a class="btn btn-info" href="#{{t}}">{{ t }}</a>
         </td>
       {% capture columnIdx %}{{columnIdx | plus: '1'}}{% endcapture %}
@@ -33,7 +33,7 @@ title: Tags
     
     {% if columnIdx != '5' %} 
       {% for i in (columnIdx..4) %}
-        <td><!-- intentionally left blank --></td>
+        <td style="border-width:0px"><!-- intentionally left blank --></td>
       {% endfor %}
       </tr>
     {% endif %}

@@ -1,0 +1,68 @@
+---
+title: Including javascript into blog posts
+category: blog-documentation
+series: blog-setup
+layout: post
+date: 2015-09-14 17:30:45
+tags: blog-docs
+scripts: ["/codeSnippets/javascriptTest/sierpinski.js"]
+onload: "drawSierpinski();"
+stylesheets: ["/codeSnippets/javascriptTest/yinyang.css"]
+---
+
+<p>
+Testing the mechanism for inclusion of custom stylesheets and
+javascript-files into my blog posts.
+</p>
+
+<!-- cut -->
+
+<p>
+  If you want to include additional javascript files, add
+  {% highlight javascript %}
+    scripts: ["src1", "src2", ..., "srcN"]
+  {% endhighlight %}
+  to the front-matter. To specify the entry-point,
+  add
+  {% highlight javascript %}
+    onload: "myEntryPointFunction();"
+  {% endhighlight %}
+  to the front-matter.
+</p>
+
+<p>
+  If you want to include additional stylesheets, add
+  {% highlight javascript %}
+    stylesheets: ["href1", "href2", ..., "hrefN"]
+  {% endhighlight %}
+  to the front-matter.
+</p>
+
+<p>
+If JS works, this should look like a Sierpinski triangle:
+</p>
+<p>
+<canvas id="sierpinski" width="200" height="200">
+</canvas>
+</p>
+
+
+<p>
+The following shape consists of six <code>&lt;div&gt;</code>s, 
+styled with CSS:
+</p>
+  <div id="yinyang">
+    <div id="yin"></div>
+    <div id="yang"></div>
+    <div id="yin-nose"></div>
+    <div id="yang-nose"></div>
+    <div id="yin-circle"></div>
+    <div id="yang-circle"></div>
+  </div>
+
+<hr>
+<p>
+Code for this post: <a href="{{ site.baseurl }}/codeSnippets/javascriptTest">
+  sierpinski.js + yinyang.css
+</a>
+</p>

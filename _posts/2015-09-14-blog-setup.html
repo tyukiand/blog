@@ -5,6 +5,7 @@ category: blog-documentation
 layout: post
 date: 2015-09-14 17:00:45
 tags: blog-docs
+deactivateComments: true
 ---
 <p>
 This post is a brief description of the technical aspects of the
@@ -23,7 +24,8 @@ For the comments, an external comment hosting service
 </p>
 <p>
 No Jekyll-plugins are used. Instead, the following functionality has
-been implemented using only Jekyll's Liquid engine: cut, tags, post-series. These features are <em>not standard</em>, and they are not
+been implemented using only Jekyll's Liquid engine: cut, tags, post-series,
+auxiliary javascript and CSS files, generated pages for code snippets. These features are <em>not standard</em>, and they are not
 documented anywhere else.
 </p>
 
@@ -117,12 +119,53 @@ script.
   To access Disqus' moderation/administration panel, 
   visit the page <code>https://your_discus_shortname.disqus.com/admin/moderate/</code>.
 </p>
+<p>
+  To deactivate comments in a post, add
+  <code>deactivateComments: true</code>
+  to the front-matter.
+</p>
 
 <h2> Cut </h2>
 <p>
 The cut-feature is available. Just insert <code>&lt;!-- cut --&gt;</code>
 anywhere in the post. Notice that there is a single space on each side
 of the word "cut".
+</p>
+
+<h2>Additional javascript and css files</h2>
+<p>
+  It is possible to add auxiliary JS and CSS files,
+  see a later separate blog post in this series.
+</p>
+
+<h2>Code snippets</h2>
+<p>
+  It is possible to generate pages for code snippets.
+  Simply create a subdirectory in <code>codeSnippets</code>,
+  add your source code files there, and create an <code>index.html</code>-file with a front-matter that looks like this:
+  {% highlight javascript %}
+---
+title: Javascript + CSS tests
+date: 2015-10-05 15:00
+layout: codeSnippet
+sourceCodeFiles: [[sierpinski.js, javascript], [yinyang.css, css]]
+---
+  {% endhighlight %}
+  The first component of each entry should be the name of the source code file.
+  The second component should be a language identifier that is understood by
+  Liquid's <code>highlight</code> tag.
+  The rest of the <code>index.html</code> can remain empty.
+
+  To link the code-snippet page from a post, simply add something like this
+  to the end of the post:
+  {% highlight html %}
+<hr>
+<p>
+Code for this post: <a href="{{ site.baseurl }}/codeSnippets/javascriptTest">
+  sierpinski.js + yinyang.css
+</a>
+</p>
+  {% endhighlight %}
 </p>
 
 <h2> Summary </h2>

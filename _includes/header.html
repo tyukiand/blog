@@ -10,20 +10,36 @@
   <link rel="stylesheet" href="{{ site.baseurl }}/css/pygments/syntax.css">
   <link rel="stylesheet" href="{{ site.baseurl }}/css/custom.css">
   
-  {% if page.stylesheets %}
-    {% for s in page.stylesheets %} 
+  {% if page.localStylesheets %}
+    {% for s in page.localStylesheets %} 
       <link rel="stylesheet" href="{{ site.baseurl }}{{s}}">
     {% endfor %}
   {% else %}
-    <!-- no extra stylesheets for this page -->
+    <!-- no local stylesheets for this page -->
   {% endif %}
 
-  {% if page.scripts %}
-    {% for s in page.scripts %} 
+  {% if page.localScripts %}
+    {% for s in page.localScripts %} 
+      <script src="{{ site.baseurl }}{{s}}"></script>
+    {% endfor %}
+  {% else %}  
+    <!-- no local scripts for this page -->
+  {% endif %}
+
+  {% if page.externalStylesheets %}
+    {% for s in page.externalStylesheets %} 
+      <link rel="stylesheet" href="{{s}}">
+    {% endfor %}
+  {% else %}
+    <!-- no local stylesheets for this page -->
+  {% endif %}
+
+  {% if page.externalScripts %}
+    {% for s in page.externalScripts %} 
       <script src="{{s}}"></script>
     {% endfor %}
   {% else %}  
-    <!-- no extra scripts for this page -->
+    <!-- no external scripts for this page -->
   {% endif %}
 
 </head>

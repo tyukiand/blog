@@ -5,9 +5,9 @@ series: blog-setup
 layout: post
 date: 2015-09-14 17:30:45
 tags: blog-docs
-scripts: ["/codeSnippets/javascriptTest/sierpinski.js"]
+localScripts: ["/codeSnippets/javascriptTest/sierpinski.js"]
 onload: "drawSierpinski();"
-stylesheets: ["/codeSnippets/javascriptTest/yinyang.css"]
+localStylesheets: ["/codeSnippets/javascriptTest/yinyang.css"]
 ---
 
 <p>
@@ -20,20 +20,24 @@ javascript-files into my blog posts.
 <p>
   If you want to include additional javascript files, add
   {% highlight javascript %}
-    scripts: ["src1", "src2", ..., "srcN"]
+localScripts: ["/src1", "/src2", ..., "/srcN"]
+externalScripts: ["globalUrl1",...,"globalUrlM"]
   {% endhighlight %}
   to the front-matter. To specify the entry-point,
   add
   {% highlight javascript %}
-    onload: "myEntryPointFunction();"
+onload: "myEntryPointFunction();"
   {% endhighlight %}
   to the front-matter.
+  Notice that for local scripts, the <code>/</code> at the
+  beginning is required.
 </p>
 
 <p>
   If you want to include additional stylesheets, add
   {% highlight javascript %}
-    stylesheets: ["href1", "href2", ..., "hrefN"]
+localStylesheets: ["/href1", "/href2", ..., "/hrefN"]
+externalStylesheets: ["globalUrl1", ..., "globalUrlM"]
   {% endhighlight %}
   to the front-matter.
 </p>

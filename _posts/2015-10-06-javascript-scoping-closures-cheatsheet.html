@@ -1,0 +1,414 @@
+---
+title: Scoping and closures in JavaScript
+category: programming-languages
+series: javascript-notes
+layout: post
+date: 2015-10-05 10:00
+tags: [javascript, programming-languages]
+commentsId: javascriptScopingAndClosuresInsanity
+---
+
+<p>
+This is a brief reminder for myself 
+about JavaScript's scoping rules, 
+closures, and their interactions with 
+control flow constructs like the <code>for</code>-loop.
+</p>
+
+<!-- cut -->
+
+<p>
+This post contains JavaScript code snippets that point out the peculiarities of
+JavaScripts scoping mechanism.
+Every code snippet comes together with a brief explanation of 
+what's going on. 
+If possible, I provide a translation between JavaScript constructs
+and corresponding Scala constructs. Thus, this post might be of some
+use to those who are familiar with Scala, but need a quick refresher in
+JavaScript. Warning: the Scala-examples are not idiomatic, this is because
+I wanted to make the analogies between Scala-code and JavaScript-code more
+apparent.
+</p>
+
+<h2>Background</h2>
+<p>
+Scoping rules in JavaScript are quite different from the rules of C or Java. 
+There is no block scope, 
+control flow constructs (like the <code>for</code>-loop) do not introduce their 
+own scope either, a variable can be re-declared multiple times within the same 
+scope.
+</p>
+
+<p>
+For most people used to C-style blocks, these scoping rules seem 
+broken beyond repair. Since a change in semantics of the <code>var</code>
+keyword would break just about every single web-application,
+ECMAScript 6 introduced new keywords <code>let</code> and <code>const</code>
+which should respect the block structure.
+However, at the time of writing (October 2015), 
+significant percentage of browsers do not support these
+new language features, so I will look only at what is available right now, 
+namely variables declared with the <code>var</code>-keyword.
+</p>
+
+<h2>Scoping</h2>
+<p>
+One can declare a variable with the same name in the same scope multiple times. 
+The following code is valid:
+{% highlight javascript %}
+var x = 1;
+console.log(x);
+var x = 2;
+console.log(x);
+var x = "is now a string";
+console.log(x);
+{% endhighlight %}
+It simply prints <code>1</code>, <code>2</code>, 
+and finally <code>"is now a string"</code>. No warnings are produced (
+at least, my version of Firefox does not produce any).
+</p>
+
+<p>
+There is no block-scope:
+{% highlight javascript %}
+var x = 42;
+console.log(x);
+console.log(y);
+{
+  var x = -1;
+  var y = 314159;
+  console.log(x);
+  console.log(y);
+}
+console.log(x);
+console.log(y);
+{% endhighlight %}
+When executed, the above code produces the following output:
+{% highlight javascript %}
+42 
+undefined
+-1
+314159
+-1
+314159
+{% endhighlight %}
+Notice that the value of <code>x</code> remains <code>-1</code> after we 
+leave the block. The variable <code>y</code> escapes the block, it's value
+<code>314159</code> is available when we call <code>console.log(y)</code>
+the last time. Also note that the second line does not produce a reference 
+error: variable <code>y</code> is already in the scope, although it is has 
+not been initialized yet.
+</p>
+
+<p>
+It is similar for the <code>function</code> keyword: it also does not respect 
+the block:
+{% highlight javascript %}
+function x() {
+  console.log("1");
+}
+{
+  function x() {
+    console.log("2");
+  }
+  x();
+}
+x();
+{% endhighlight %}
+This code outputs <code>2</code> two times.
+</p>
+
+<p>
+The <code>function</code> seems to be the only language construct that 
+introduces it's own scope. For example, the following piece of code 
+{% highlight javascript %}
+var x = 42;
+function foo() {
+  var x = -1;
+  var y = 314159;
+  console.log(x);
+  console.log(y);
+}
+foo();
+console.log(x);
+console.log(y);
+{% endhighlight %}
+produces the output <code>-1</code> 
+  (it's the <code>x</code> from <code>foo</code>),
+  <code>314159</code> (the <code>y</code> from <code>foo</code>),
+  <code>42</code> (this is <code>x</code> from the outer scope),
+  and then crashes with a Reference error, because it cannot find 
+  any mention of <code>y</code>.
+
+Therefore, we can use inline functions to simulate C-style blocks.
+For example, this is how we could translate a block-construct from Scala 
+to JavaScript;
+<div class="row">
+<div class="col-xs-6">
+{% highlight scala %}
+// Scala
+var x = 42
+var z = 1000
+{
+  var x = -1
+  var y = 314159
+  z = 1000000
+  println(x)
+  println(y)
+}
+println(x)
+println(z)
+{% endhighlight %}
+</div>
+<div class="col-xs-6">
+{% highlight javascript %}
+// JavaScript
+var x = 42;
+var z = 1000;
+(function () {
+  var x = -1;
+  var y = 314159;
+  z = 1000000;
+  console.log(x);
+  console.log(y);
+})();
+console.log(x);
+console.log(z);
+{% endhighlight %}
+</div>
+</div>
+As expected, both programs output <code>-1,314159,42,1000000</code>, that is,
+<code>z</code> is updated, and the old value of 
+<code>x</code> is restored after we leave the
+block.
+</p>
+
+<p>
+Similarly, we can translate the following Scala construct without polluting
+the namespace:
+</p>
+<div class="row">
+<div class="col-xs-6">
+{% highlight scala %}
+// Scala
+var x = 42
+var y = 10
+var r = {
+  var xSq = x * x
+  var ySq = y * y
+  math.sqrt(xSq + ySq)
+}
+println(r)
+{% endhighlight %}
+</div>
+<div class="col-xs-6">
+{% highlight javascript %}
+// JavaScript
+var x = 42;
+var y = 10;
+var r = (function () {
+  var xSq = x * x;
+  var ySq = y * y;
+  return Math.sqrt(xSq + ySq);
+})();
+console.log(r);
+{% endhighlight %}
+</div>
+</div>
+
+<p>
+The interaction between variable and function declarations is also quite 
+strange, the variables seem to shadow the functions, but no errors are 
+produced (at least not until we try to call an integer as a function):
+{% highlight javascript %}
+var x = 42;
+function x(y) {
+  return y * y;
+}
+
+console.log(x);
+console.log(x(x));
+{% endhighlight %}
+The above prints <code>42</code> and 
+then crashes with the message "x is not a function".
+Swapping the order of <code>var</code> and <code>function</code> 
+does not change anything in this case.
+</p>
+
+<p>
+The loop-variable in <code>for</code> also shares the same scope as all
+the variables outside of the <code>for</code>-statement. For example:
+{% highlight javascript %}
+var i = 42;
+for (var i = 0; i < 3; i++) {
+  console.log(i);
+}
+console.log(i);
+{% endhighlight %}
+Produces <code>0,1,2,3</code>, instead of <code>0,1,2,42</code>.
+As antidote, we could use the same hack as above, and wrap the 
+<code>for</code>-loop into a nameless <code>function</code>.
+</p>
+
+<h2>Closures</h2>
+<p>
+Everything gets really weird as soon as JavaScripts scoping rules start to
+interact with closures. Consider the following (very insidious) example:
+{% highlight javascript %}
+var fs = [];
+for (var i = 0; i < 3; i++) {
+  fs.push( function() {
+    console.log("I am function " + i);
+  });
+}
+for (var i = 0; i < 3; i++) {
+  fs[i]();
+}
+{% endhighlight %}
+In the first loop, 
+we fill an array with three functions that simply 
+print their number when called. 
+In the second loop, we go through the array, and call each function.
+The output is 
+{% highlight javascript %}
+"I am function 0"
+"I am function 1"
+"I am function 2"
+{% endhighlight %}
+It seems to work just fine. But it just an illusion. Here is the same code,
+but this time with <code>i</code> replaced by a fresh variable <code>j</code>
+in the second loop:
+{% highlight javascript %}
+var fs = [];
+for (var i = 0; i < 3; i++) {
+  fs.push( function() {
+    console.log("I am function " + i);
+  });
+}
+for (var j = 0; j < 3; j++) {
+  fs[j]();
+}
+{% endhighlight %}
+This time, the output is <code>"I am function 3"</code> three times, which is
+probably not what we intended when we wrote the first loop. The reason why this
+happens is that the <code>i</code> in the closure refers to a mutable variable
+that lives outside of the loop. Rewritten with while-loops, the first version of
+the code snippet would look as follows:
+{% highlight javascript %}
+var fs = [];
+var i = 0;
+while (i < 3) {
+  fs.push(function() {
+    console.log("I am function " + i);
+  });
+  i++;
+}
+i = 0;
+while (i < 3) {
+  fs[i]();
+  i++;
+}
+{% endhighlight %}
+Thus, we store <emph>the same</emph> closure three times, but then call it
+in three different contexts, with three different values of 
+(still alive) variable <code>i</code>. This gives us seemingly correct results.
+But as soon as we replace <code>i</code> by <code>j</code>, the mistake becomes
+apparent, because the closure always returns <code>3</code>.
+A systematic way to translate such closure-producing <code>for</code>-loops 
+from Scala to JavaScript would be:
+</p>
+
+<div class="row">
+<div class="col-xs-6">
+{% highlight scala %}
+// Scala
+var i = 42
+var fs: List[() => Unit] = Nil
+
+for (i <- 0 until 3) {
+
+  fs :+= { () => 
+    println("I am " + i) 
+  }
+}
+
+
+for (i <- 0 until 3) {
+  fs(i)()
+}
+
+println(i)
+
+{% endhighlight %}
+</div>
+<div class="col-xs-6">
+{% highlight javascript %}
+// JavaScript
+var i = 42;
+var fs = [];
+(function () {
+  for (var i = 0; i < 3; i++) { 
+  (function(i) {
+    fs.push(function() {
+      console.log("I am " + i);
+    });
+  })(i);}
+})();
+(function () {
+  for (var i = 0; i < 3; i++) {
+    fs[i]();
+  }
+})();
+console.log(i);
+{% endhighlight %}
+</div>
+</div>
+<p>
+Now both pieces of code produce the same output, namely:
+{% highlight javascript %}
+"I am function 0"
+"I am function 1"
+"I am function 2"
+42
+{% endhighlight %}
+Notice that one could get rid of the first and the last 
+dummy-<code>function</code> by choosing different variable
+names, and polluting the environment a little bit:
+{% highlight javascript %}
+var i = 42;
+var fs = [];
+
+for (var j = 0; j < 3; j++) { (function(i) {
+  fs.push(function() {
+    console.log("I am function " + i);
+  });
+})(j);}
+
+
+for (var k = 0; k < 3; k++) {
+  fs[k]();
+}
+
+console.log(i);
+{% endhighlight %}
+This code is clearly more readable. However, we cannot 
+get rid of the dummy-<code>function</code> that encloses
+the block of the first <code>for</code>-loop, because 
+then we would close over the same mutable variable three 
+times.
+</p>
+
+<h3>Conclusion</h3>
+<p>
+JavaScript's scoping and closures behave very differently from
+what I'm used to. 
+I find it quite strange, but at least there is a simple 
+and clear system of rules behind this behavior.
+</p>
+
+<hr>
+<p>
+Code for this post: <a href="/codeSnippets/javascriptNotes/scoping">
+  scopingAndClosures.js
+</a>
+</p>

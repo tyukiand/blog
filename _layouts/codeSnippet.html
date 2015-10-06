@@ -6,6 +6,11 @@
       <!-- intentionally left blank -->
     </div>
     <div class="col-xs-12 col-md-8 col-lg-7">
+      <div>
+        {{ page.content }}
+      </div>
+      <hr>
+      <div>
       {% for sourceFileAndType in page.sourceCodeFiles %}
         <h3>{{ sourceFileAndType[0] }}</h3>
         {% assign file = sourceFileAndType[0] %}
@@ -22,6 +27,14 @@
           {% highlight ruby %}
             {% include_relative {{ file }} %}
           {% endhighlight %}
+        {% elsif lang == "html" %}
+          {% highlight html %}
+            {% include_relative {{ file }} %}
+          {% endhighlight %}
+        {% elsif lang == "javascript" %}
+          {% highlight javascript %}
+            {% include_relative {{ file }} %}
+          {% endhighlight %}
         {% else %}
           {% highlight scala %}
             {% include_relative {{ file }} %}
@@ -33,9 +46,9 @@ here is the
   original file
 </a>.
       {% endfor %}
-
-      {{ page.content }}
+      </div>
     </div>
+
     <div class="col-xs-12 col-md-4 col-lg-3">
       {% include sidebar.html %}
     </div>

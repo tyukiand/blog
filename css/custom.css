@@ -1,3 +1,6 @@
+---
+layout: stylesheet
+---
 a {
     color: #0000BB;
 }
@@ -74,6 +77,25 @@ figure {
   margin: 2px;
 }
 */
+
+.backstage {
+  padding: 16px;
+  background-image: url("{{ site.baseurl }}/images/yellowStripes.png") ;
+  background-image-repeat: both;
+  border-style: solid;
+  border-width: 2px;
+  border-color: #000000;
+}
+
+.backstage > div {
+  padding: 16px;
+  background-color: #EEEE00;
+  text-align: center;
+  border-style: solid;
+  border-width: 2px;
+  border-color: #000000;
+}
+
 
 .customCssLoaded {
   background-color: #005500;

@@ -1,0 +1,254 @@
+---
+title: Including figures into blog posts
+category: blog-documentation
+series: blog-setup
+layout: post
+date: 2015-09-15 20:30:45
+tags: blog-docs
+---
+
+<p>
+How to include images (again, just a little note for myself).
+</p>
+
+<!-- cut -->
+
+<div class="customCssLoaded">
+  custom.css loaded
+</div>
+
+<h2>Specifying the source </h2>
+<p>
+The <code>src</code> property of the image
+should start with <code>{% raw %}{{ site.baseurl }}/images{% endraw %}</code>, unless you want to link an image from an
+external site.
+</p>
+
+<h2>Positioning</h2>
+<p>
+Since HTML5, there are <code>&lt;figure&gt;</code> 
+and <code>&lt;figcaption&gt;</code> tags. 
+</p>
+<p>
+Table-layouts, now called "grid-systems", have won. Fifteen years 
+ago, we had tables everywhere, now we have <code>div</code>'s
+with weird CSS-classes all over the place.
+CSS seems to be only slightly less insane than it was 10 years ago,
+positioning anything on the screen in a predictable way still 
+seems nearly impossible to me.
+</p>
+
+<p>
+Just in case that I should ever try to rewrite the style for the figure
+positioning, here is a list of strange rules to keep in mind:
+<ul>
+  <li>You can, theoretically, center stuff with <code>margin: auto;</code></li>
+  <li>It does not work if the <code>width</code> is not set explicitly</li>
+  <li>It does not work if the element has <code>display</code> not equal to
+    <code>block</code></li> 
+
+</ul>
+Here is what I've come up with for now:
+<ol>
+  <li>For each row of figures, create a <code>&lt;div&gt;</code> with class 
+    <code>row</code>
+  </li>
+  <li>For each figure in the row, create a <code>&lt;figure&gt;</code> 
+    element with class <code>col-xs-{12/n}</code>, where <code>n</code> 
+    is the number of figures in the row.
+  </li>
+  <li>In each <code>&lt;figure&gt;</code>, insert the <code>&lt;img&gt;</code>
+    and <code>&lt;figcaption&gt;</code> tags.
+  </li>
+  <li>
+    Add <code>class="framed"</code> to both image and caption.
+  </li>
+  <li>
+    Add <code>style="max-width: &lt;N&gt;px;"</code> to both image and caption.
+    Keep this size consistent, otherwise the little rounded rectangle around
+    the image will fall apart.
+  </li>
+</ol>
+The <code>framed</code> class is defined in <code>custom.css</code> 
+as follows: 
+{% highlight css %}
+.framed {
+  border-color: #BBBBBB;
+  border-style: solid;
+  background-color: #EEEEFF;
+  padding: 5px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+img.framed {
+  border-radius: 5px 5px 0px 0px;
+  border-width: 1px 1px 0px 1px;
+}
+
+figcaption.framed {
+  border-radius: 0px 0px 5px 5px;
+  border-width: 0px 1px 1px 1px;
+}
+{% endhighlight %}
+It makes sure that both image and caption are centered within the figure, and
+that there is a rectangle with rounded border that groups the image and the
+caption together.
+</p>
+
+<p> 
+Single image in a <code>&lt;figure&gt;</code>:
+{% highlight html %}
+<div class="row">
+  <div class="col-xs-12">
+    <figure class="centered">
+      <img 
+        src="{{ site.baseurl }}/images/testFigure/escherOriginal.png" 
+        class="framed"
+        style="width: 100%; max-width: 300px;">
+      <figcaption
+        class="framed"
+        style="width: 100%; max-width: 300px;"
+      >
+        <span>Fig. 1:</span> 
+        Self-portrait of M. C. Escher, 
+        covered with a rectangular grid.
+      </figcaption>
+    </figure>
+  </div>
+</div>
+{% endhighlight %}
+This results in:
+</p>
+
+<div class="row">
+  <div class="col-xs-12">
+    <figure class="centered">
+      <img 
+        src="{{ site.baseurl }}/images/testFigure/escherOriginal.png" 
+        class="framed"
+        style="width: 100%; max-width: 300px;">
+      <figcaption
+        class="framed"
+        style="width: 100%; max-width: 300px;"
+      >
+        <span>Fig. 1:</span> 
+        Self-portrait of M. C. Escher, 
+        covered with a rectangular grid.
+      </figcaption>
+    </figure>
+  </div>
+</div>
+
+<p>
+Two figures in a row:
+{% highlight html %}
+<div class="row">
+<figure class="col-xs-6">
+  <img 
+    src="{{ site.baseurl }}/images/testFigure/escherWarped.png"
+    class="framed"
+    style="max-width:300px;">
+  <figcaption class="framed" style="max-width:300px;">
+    <span>Fig. 2:</span> Warped portrait of M.C. Escher.
+  </figcaption>
+</figure>
+<figure class="col-xs-6">
+  <img
+    src="{{ site.baseurl }}/images/testFigure/escherSmile.png"
+    class="framed"
+    style="max-width:300px;">
+  <figcaption class="framed" style="max-width: 300px;">
+    <span>Fig. 3:</span> Warped portrait of M.C. Escher.
+  </figcaption>
+</figure>
+</div>
+{% endhighlight %}
+</p>
+
+<div class="row">
+<figure class="col-xs-6">
+  <img 
+    src="{{ site.baseurl }}/images/testFigure/escherWarped.png"
+    class="framed"
+    style="max-width:300px;">
+  <figcaption class="framed" style="max-width:300px;">
+    <span>Fig. 2:</span> Warped portrait of M.C. Escher.
+  </figcaption>
+</figure>
+<figure class="col-xs-6">
+  <img
+    src="{{ site.baseurl }}/images/testFigure/escherSmile.png"
+    class="framed"
+    style="max-width:300px;">
+  <figcaption class="framed" style="max-width: 300px;">
+    <span>Fig. 3:</span> Warped portrait of M.C. Escher.
+  </figcaption>
+</figure>
+</div>
+
+<p>
+Three images in a row:
+{% highlight html %}
+<div class="row">
+<figure class="col-xs-4">
+  <img 
+    src="{{ site.baseurl }}/images/testFigure/escherSmile.png"
+    class="framed"
+    style="max-width:200px;">
+  <figcaption class="framed" style="max-width:200px;">
+    <span>Fig. 4:</span> Caption 
+  </figcaption>
+</figure>
+<figure class="col-xs-4">
+  <img 
+    src="{{ site.baseurl }}/images/testFigure/escherSmile.png"
+    class="framed"
+    style="max-width:200px;">
+  <figcaption class="framed" style="max-width:200px;">
+    <span>Fig. 5:</span> Caption
+  </figcaption>
+</figure>
+<figure class="col-xs-4">
+  <img 
+    src="{{ site.baseurl }}/images/testFigure/escherSmile.png"
+    class="framed"
+    style="max-width:200px;">
+  <figcaption class="framed" style="max-width:200px;">
+    <span>Fig. 6:</span> Caption
+  </figcaption>
+</figure>
+</div>
+{% endhighlight %}
+</p>
+<div class="row">
+<figure class="col-xs-4">
+  <img 
+    src="{{ site.baseurl }}/images/testFigure/escherSmile.png"
+    class="framed"
+    style="max-width:200px;">
+  <figcaption class="framed" style="max-width:200px;">
+    <span>Fig. 4:</span> Caption 
+  </figcaption>
+</figure>
+<figure class="col-xs-4">
+  <img 
+    src="{{ site.baseurl }}/images/testFigure/escherSmile.png"
+    class="framed"
+    style="max-width:200px;">
+  <figcaption class="framed" style="max-width:200px;">
+    <span>Fig. 5:</span> Caption
+  </figcaption>
+</figure>
+<figure class="col-xs-4">
+  <img 
+    src="{{ site.baseurl }}/images/testFigure/escherSmile.png"
+    class="framed"
+    style="max-width:200px;">
+  <figcaption class="framed" style="max-width:200px;">
+    <span>Fig. 6:</span> Caption
+  </figcaption>
+</figure>
+</div>

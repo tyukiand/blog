@@ -6,7 +6,7 @@ function drawSierpinski() {
   var ctx = canvas.getContext('2d');
   ctx.fillStyle = "#FFFFFF";
   ctx.fillRect(0,0,w,canvasHeight);
-  ctx.fillStyle = "rgba(0,0,0,0.2)";
+  ctx.fillStyle = "rgba(0,0,0,1)";
   function mid(a, b) {
     return {x:(a.x + b.x) / 2, y: (a.y + b.y) / 2};
   }

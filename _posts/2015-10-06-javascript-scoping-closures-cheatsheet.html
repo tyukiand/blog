@@ -18,8 +18,8 @@ control flow constructs like the <code>for</code>-loop.
 <!-- cut -->
 
 <p>
-This post contains JavaScript code snippets that point out the peculiarities of
-JavaScripts scoping mechanism.
+The JavaScript code snippets in this post demonstrate some 
+peculiarities of JavaScript's scoping mechanism.
 Every code snippet comes together with a brief explanation of 
 what's going on. 
 If possible, I provide a translation between JavaScript constructs
@@ -32,7 +32,7 @@ apparent.
 
 <h2>Background</h2>
 <p>
-Scoping rules in JavaScript are quite different from the rules of C or Java. 
+Scoping rules in JavaScript are quite different from those of C or Java. 
 There is no block scope, 
 control flow constructs (like the <code>for</code>-loop) do not introduce their 
 own scope either, a variable can be re-declared multiple times within the same 
@@ -40,11 +40,14 @@ scope.
 </p>
 
 <p>
-For most people used to C-style blocks, these scoping rules seem 
-broken beyond repair. Since a change in semantics of the <code>var</code>
-keyword would break just about every single web-application,
+For someone used to C-style blocks, these scoping rules might seem 
+broken beyond repair. However, since a change in semantics of 
+the <code>var</code> keyword would break just about every 
+single web-application,
 ECMAScript 6 introduced new keywords <code>let</code> and <code>const</code>
-which should respect the block structure.
+instead.
+These keywords should respect the block structure, and thereby help prevent 
+the namespace pollution.
 However, at the time of writing (October 2015), 
 significant percentage of browsers do not support these
 new language features, so I will look only at what is available right now, 
@@ -53,7 +56,7 @@ namely variables declared with the <code>var</code>-keyword.
 
 <h2>Scoping</h2>
 <p>
-One can declare a variable with the same name in the same scope multiple times. 
+We can declare a variable with the same name in the same scope multiple times. 
 The following code is valid:
 {% highlight javascript %}
 var x = 1;
@@ -64,8 +67,8 @@ var x = "is now a string";
 console.log(x);
 {% endhighlight %}
 It simply prints <code>1</code>, <code>2</code>, 
-and finally <code>"is now a string"</code>. No warnings are produced (
-at least, my version of Firefox does not produce any).
+and finally <code>"is now a string"</code>. No warnings are produced 
+(at least, my version of Firefox does not produce any).
 </p>
 
 <p>
@@ -93,16 +96,16 @@ undefined
 314159
 {% endhighlight %}
 Notice that the value of <code>x</code> remains <code>-1</code> after we 
-leave the block. The variable <code>y</code> escapes the block, it's value
+leave the block. The variable <code>y</code> escapes the block, its value
 <code>314159</code> is available when we call <code>console.log(y)</code>
 the last time. Also note that the second line does not produce a reference 
-error: variable <code>y</code> is already in the scope, although it is has 
+error: variable <code>y</code> is already in the scope, although it has 
 not been initialized yet.
 </p>
 
 <p>
-It is similar for the <code>function</code> keyword: it also does not respect 
-the block:
+The situation is similar for the the <code>function</code> keyword,
+<code>function</code> also does not respect the block boundaries:
 {% highlight javascript %}
 function x() {
   console.log("1");
@@ -115,11 +118,11 @@ function x() {
 }
 x();
 {% endhighlight %}
-This code outputs <code>2</code> two times.
+This code outputs <code>2</code> upon both function invocations.
 </p>
 
 <p>
-The <code>function</code> seems to be the only language construct that 
+The <code>function</code>-keyword seems to be the only language construct that 
 introduces it's own scope. For example, the following piece of code 
 {% highlight javascript %}
 var x = 42;
@@ -138,7 +141,7 @@ produces the output <code>-1</code>
   <code>314159</code> (the <code>y</code> from <code>foo</code>),
   <code>42</code> (this is <code>x</code> from the outer scope),
   and then crashes with a Reference error, because it cannot find 
-  any mention of <code>y</code>.
+  any mention of <code>y</code> outside of <code>foo</code>'s scope.
 
 Therefore, we can use inline functions to simulate C-style blocks.
 For example, this is how we could translate a block-construct from Scala 
@@ -177,7 +180,7 @@ console.log(z);
 {% endhighlight %}
 </div>
 </div>
-As expected, both programs output <code>-1,314159,42,1000000</code>, that is,
+As expected, both programs print <code>-1,314159,42,1000000</code>, that is,
 <code>z</code> is updated, and the old value of 
 <code>x</code> is restored after we leave the
 block.
@@ -245,15 +248,15 @@ for (var i = 0; i < 3; i++) {
 }
 console.log(i);
 {% endhighlight %}
-Produces <code>0,1,2,3</code>, instead of <code>0,1,2,42</code>.
+produces <code>0,1,2,3</code>, instead of <code>0,1,2,42</code>.
 As antidote, we could use the same hack as above, and wrap the 
 <code>for</code>-loop into a nameless <code>function</code>.
 </p>
 
 <h2>Closures</h2>
 <p>
-Everything gets really weird as soon as JavaScripts scoping rules start to
-interact with closures. Consider the following (very insidious) example:
+Now let's take a look at how JavaScripts scoping rules interact with closures. 
+Consider the following (very insidious) example:
 {% highlight javascript %}
 var fs = [];
 for (var i = 0; i < 3; i++) {
@@ -266,7 +269,7 @@ for (var i = 0; i < 3; i++) {
 }
 {% endhighlight %}
 In the first loop, 
-we fill an array with three functions that simply 
+we try to fill an array with three functions that simply 
 print their number when called. 
 In the second loop, we go through the array, and call each function.
 The output is 
@@ -275,8 +278,12 @@ The output is
 "I am function 1"
 "I am function 2"
 {% endhighlight %}
-It seems to work just fine. But it just an illusion. Here is the same code,
-but this time with <code>i</code> replaced by a fresh variable <code>j</code>
+It seems to work just fine. 
+However, it works for an entirely different reason that one might expect. 
+One usually would think that an immutable copy of <code>i</code> is 
+captured by the closure, but this is not the case.
+Here is the same code, but this time with <code>i</code> replaced by a 
+fresh variable <code>j</code>
 in the second loop:
 {% highlight javascript %}
 var fs = [];
@@ -311,11 +318,11 @@ while (i < 3) {
 {% endhighlight %}
 Thus, we store <emph>the same</emph> closure three times, but then call it
 in three different contexts, with three different values of 
-(still alive) variable <code>i</code>. This gives us seemingly correct results.
+(still alive!) variable <code>i</code>. This gives us seemingly correct results.
 But as soon as we replace <code>i</code> by <code>j</code>, the mistake becomes
 apparent, because the closure always returns <code>3</code>.
 A systematic way to translate such closure-producing <code>for</code>-loops 
-from Scala to JavaScript would be:
+from Scala into JavaScript would be:
 </p>
 
 <div class="row">

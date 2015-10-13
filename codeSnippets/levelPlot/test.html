@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- minimum example of how to use levelPlot.js -->
+<head>
+  <title>Level plot</title>
+  <script src="levelPlot.js"></script>
+  <script>
+  function init() {
+    var plot = new levelPlot.Plot(
+      function(param) {
+        return function(x, y) {
+          var rad1 = Math.hypot(
+            x - param.centerX, 
+            y - param.centerY
+          );
+          var rad2 = Math.hypot(
+            x + param.centerX,
+            y + param.centerY
+          );
+          var z = 
+            Math.sin(5 * rad1) / (1 + rad1) + 
+            Math.sin(5 * rad2) / (1 + rad2);
+          return z;
+        };
+      },
+      "sinusWebWorker.js",
+      -10, 10,
+      -10, 10,
+      (4 * 4), 0, // 4 x (max - min) for variation
+      "myCanvas",
+      {noSettings:"noSettingsAreRequiredInThisCase"},
+      levelPlot.realCyclicVariation
+    );
+    
+    var myCanvas = document.getElementById("myCanvas");
+
+    // Install mouse-move listener
+    myCanvas.onmousemove = function(event) {
+      var rect = this.getBoundingClientRect();  // absolute position of element
+      var x = event.clientX - rect.left;        // adjust for x
+      var y = event.clientY - rect.top;         // adjust for y
+      var c = document.getElementById('myCanvas');
+      plot.redraw('visible', {
+        centerX : (x / c.width - 0.5) * 20, 
+        centerY : (y / c.height - 0.5) * 20
+      });
+    };
+  }
+  </script>
+</head>
+<body onLoad="init();">
+  <h1>Interferring sinus waves</h1>
+  <canvas 
+    id="myCanvas" 
+    width=300
+    height=300
+    style="background:#FF0000;">
+  </canvas>
+</body>
+</html>

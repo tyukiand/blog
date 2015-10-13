@@ -4,11 +4,12 @@ category: blog-documentation
 series: blog-setup
 layout: post
 date: 2015-09-14 18:30:45
-tags: blog-docs
+tags: blog-documentation
 localScripts: ["/codeSnippets/javascriptTest/sierpinski.js"]
 onload: "drawSierpinski();"
 localStylesheets: ["/codeSnippets/javascriptTest/yinyang.css"]
 deactivateComments: true
+scriptsPath : "/yes/the/scripts/path/is/defined/"
 ---
 
 <p>
@@ -20,7 +21,7 @@ javascript-files into my blog posts.
 
 <div class="backstage">
   <div>
-    <h2> BACKSTAGE AREA </h2>
+    <h2> <span style="text-decoration:line-through;">RESTRICTED</span> AREA </h2>
     <p>
     This page describes the usage of the blog software from
     author's point of view. It is probably not what you are 
@@ -52,6 +53,30 @@ onload: "myEntryPointFunction();"
   to the front-matter.
   Notice that for local scripts, the <code>/</code> at the
   beginning is required.
+</p>
+
+<p>
+  If your additional javascript files themselves depend on other 
+  scripts from this page (e.g. some WebWorker-scripts), 
+  include the following variable to the front-matter:
+  {% highlight javascript %}
+    ---
+    scriptsPath : "/codeSnippets/whereEver/"
+    ---
+  {% endhighlight %}
+  This variable (if present) will be transformed into a tiny script 
+  in the header of your page:
+  {% highlight liquid %}
+    {% raw %}
+    {% if page.scriptsPath %}
+      <script>
+        var SCRIPTS_PATH = "{{ site.baseurl }}{{ page.scriptsPath }}";
+      </script>
+    {% endif %}
+    {% endraw %}
+  {% endhighlight %}
+  Try to type <code>SCRIPTS_PATH</code> into your console: you should see
+  something.
 </p>
 
 <p>

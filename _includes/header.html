@@ -10,6 +10,12 @@
   <link rel="stylesheet" href="{{ site.baseurl }}/css/pygments/syntax.css">
   <link rel="stylesheet" type="text/css" href="{{ site.baseurl }}/css/custom.css">
   
+  {% if page.scriptsPath %}
+    <script>
+      var SCRIPTS_PATH = "{{ site.baseurl }}{{ page.scriptsPath }}";
+    </script>
+  {% endif %}
+
   {% if page.localStylesheets %}
     {% for s in page.localStylesheets %} 
       <link rel="stylesheet" href="{{ site.baseurl }}{{s}}">
@@ -42,6 +48,7 @@
     <!-- no external scripts for this page -->
   {% endif %}
 
+  
 </head>
 
 {% if page.onload %}

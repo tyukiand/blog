@@ -1,0 +1,313 @@
+---
+title: Responsive level plot - usage
+category: visualization
+layout: post
+date: 2015-10-07 10:00
+tags: [javascript, visualization, blog-documentation]
+localScripts: 
+  - "/codeSnippets/levelPlot/levelPlot.js"
+  - "/codeSnippets/levelPlot/palette.js"
+  - "/codeSnippets/levelPlot/juliaSetsWithOrbits.js"
+onload: "init(250);"
+scriptsPath: "/codeSnippets/levelPlot/"
+commentsId: jsResponsiveLevelPlot_julia
+deactivateComments: false
+series: level-plot
+---
+
+<p>
+  This post describes the usage of <code>levelPlot.js</code>.
+</p>
+
+<!-- cut -->
+
+<p>
+  We will use the <span style="text-decoration: line-through;">worn-out</span> 
+  well-known function
+  \[
+     f_c(z) := z^2 + c \\
+     F_c(z) := \min(
+       N,\, \inf\{n\in\mathbb{N}_0 : \vert f_c^n(z) \vert > R \}
+     )
+  \]
+  as an example. Here \(N\) is some maximum number of iterations, 
+  and \(R\) is the bail-out radius.
+  The reasons for this choice are: 
+  <ul>
+    <li>It's very easy to implement</li>
+    <li>It produces very complicated shapes</li>
+    <li>It's immediately obvious whether the plot is correct or not</li>
+  </ul>
+  therefore, it's an ideal test-case for a plotter. 
+</p>
+<p>
+  We will create two plots.
+  One plot will show the Julia-sets for the above quadratic polynomial, 
+  the other plot will show the corresponding
+  Mandelbrot set. The one with the Julia-sets will make use of 
+  <code>levelPlot.js</code>, the
+  plot with the Mandelbrot set will be static. It will be possible to
+  click on the Mandelbrot set to fix a special value. A Julia-set for this
+  special value will be rendered on a back-buffer. 
+  After this, it will be possible to click on the Julia set to show some 
+  orbits. On each click, the special back-buffer will be copied to the
+  visible canvas. The orbit will be drawn on top of it.
+</p>
+
+<p>
+  Here are the interactive plots:
+</p>
+<div class="row">
+  <div class="col-xs-6">
+      <canvas
+        id = "mandelbrotCanvas"
+        class="framed">
+      </canvas>
+  </div>
+  <div class="col-xs-6">
+      <canvas
+        id = "juliaCanvas"
+        class="framed">
+      </canvas>
+  </div>
+</div>
+
+<p> In the rest of this post, we will describe how it is implemented. </p>
+
+<h2> The WebWorker code </h2>
+<p>
+The <code>levelPlot.js</code> script makes use of the WebWorkers.
+The easiest way to implement a <code>levelPlot.js</code>-compatible WebWorker 
+is to copy the following piece of code, and modify the two parts that 
+are enclosed by <code>BEGIN EDITING</code>, <code>END EDITING</code> 
+comments:
+</p>
+{% highlight javascript %}
+onmessage = function(msg) {
+
+  // This is what is posted as message to the workers
+  var data  = msg.data;
+  var id = data.id;                // should be sent back in the answer
+  var param = data.param;          // use for computation, sent it back 
+  var screnRect = data.screnRect;  // pixel-dims. sent it back in the answer
+  var worldRect = data.worldRect;  // which part are you computing
+  // whatever you passed as painting settings to
+  // the Plot constructor, it's passed to your workers
+  var paintingSettings = data.paintingSettings;
+
+  // this is a basic setup of the result array
+  var sw = screnRect.width;
+  var sh = screnRect.height;
+  var pixels = new Uint8ClampedArray(sw * sh * 4);
+
+  // here are a few helper variables that are 
+  // useful for generating (x,y)-values for each pixel
+  var dx = worldRect.width / (sw - 1);
+  var dy = worldRect.height / (sh - 1);
+
+  var x = worldRect.left;
+  var y = worldRect.bottom;
+  var red = 0;
+  var green = 0;
+  var blue = 0;
+  var ptr = 0;
+
+  // [1/2] BEGIN EDITING HERE (optional) extract some variables from 
+  // `paintingSettings` and `param`, if you want
+  var palette = paintingSettings.palette;
+  var numColors = palette.red.length;
+  var maxIters = paintingSettings.maxIters;
+  var bailOutSq = paintingSettings.bailOut * paintingSettings.bailOut;
+  var cRe = param.re;
+  var cIm = param.im;
+  // [1/2] END EDITING HERE
+
+  // here is a loop that walks through all the pixels
+  for (var row = 0; row < sh; row++) {
+    x = worldRect.left;
+    for (var column = 0; column < sw; column++) {
+      /* [2/2] BEGIN EDITING HERE */
+      var re = x;
+      var im = y;
+      var reSq = re * re;
+      var imSq = im * im;
+      var iter = 0;
+      while ((reSq + imSq <= bailOutSq) && (iter < maxIters)) {
+        im = 2 * re * im + cIm;
+        re = reSq - imSq + cRe;
+        reSq = re * re;
+        imSq = im * im;
+        iter++;
+      }
+
+      // copy-pasted from palette.js, with minor optimizations...
+      // (yes, that's bit rot)
+      var red = 0;
+      var green = 0;
+      var blue = 0;
+      for (var p = 0; p < numColors; p++) {
+        var dist = iter - palette.position[p];
+        var colorFactor = 
+          1.0 / (1 + palette.sharpness[p] * dist * dist);
+        red += colorFactor * palette.red[p];
+        green += colorFactor * palette.green[p];
+        blue += colorFactor * palette.blue[p];
+      }
+
+      /* [2/2] END EDITING HERE */
+      pixels[ptr++] = red;
+      pixels[ptr++] = green;
+      pixels[ptr++] = blue;
+      pixels[ptr++] = 255;
+
+      x += dx;
+    }
+    y += dy;
+  }
+
+  // Return the result to main thread
+  postMessage({
+    id: id,
+    param: param,
+    screnRect : screnRect,
+    pixels: pixels
+  });
+}
+{% endhighlight %}
+<p>
+  In the first block (marked with <code>[1/2]</code>), 
+  one has the opportunity to perform some computations 
+  that are common for the entire function patch. In particular, one might 
+  want to extract some values from the <code>param</code>, and from the
+  <code>paintingSettings</code>-objects. 
+  The <code>param</code> is what is sent to
+  the workers when the <code>Plot.redraw(id, param)</code> method is 
+  invoked. In the case of Julia-set level plot, this will be the complex 
+  constant <code>c</code> with components <code>re</code> and <code>im</code>.
+  The <code>paintingSettings</code> is a copy of the object that has been 
+  passed to the constructor <code>levelPlot.Plot</code>, in this case it 
+  contains the (fixed) number of iterations, the bail-out radius, and a
+  palette that is used to compute the colors of each pixel.
+</p>
+
+<p>
+  In the block <code>[2/2]</code>, we have to take the current values 
+  <code>x</code> and <code>y</code>, and transform them into three colors
+  <code>red</code>, <code>green</code> and <code>blue</code>.
+</p>
+
+<p> 
+  Here is what the <code>levelPlot.Plot</code>-constructor call looks like 
+  in this example:
+</p>
+{% highlight javascript %}
+juliaSetResponsivePlot = new levelPlot.Plot(
+  function(c) {
+    return function(zRe, zIm) {
+      return quadraticFractalIteration(
+        zRe, zIm, c.re, c.im, maxIters, bailOutSq
+      );
+    };
+  },
+  SCRIPTS_PATH + "juliaSetWebWorker.js",
+  -2, 2, -2, 2,
+  levelPlot.realCyclicVariation,
+  0, maxIters * 4,
+  "juliaCanvas",
+  {
+    palette : palette,
+    maxIters : maxIters,
+    bailOut : bailOut
+  }
+);
+{% endhighlight %}
+<p>
+  The first argument of the constructor is a function family, that is,
+  a function that takes a parameter, and returns another function that in 
+  turn takes two real values. In this case, our function family \( \{F_c\}_c \)
+  is parameterized by the summand \(c\). For each fixed \(c\), the function 
+  \(F_c\) takes a complex number \(z = z_{re} + i\cdot z_{im}\), and returns
+  a natural number.
+</p>
+<p>
+  The second argument is the path to the web-worker script.
+  The <code>SCRIPT_PATH</code> that you see above is a hack to make it work
+  with Jekyll-generated blogs, if you want to use <code>levelPlot.js</code>
+  in some other environment, you can set the path explicitly.
+</p>
+<p>
+  The next four parameters specify a plotted region: 
+  <code>min_x</code>, <code>max_x</code>, <code>min_y</code>, 
+  <code>max_y</code>. 
+</p>
+<p>
+  The next three parameters determine how we prioritize the function patches.
+  The variation measure is a function that takes a list with four values, and
+  returns a priority. The two numbers are the minimum priority and the 
+  maximum possible priority.
+  These numbers depend on the choice of the
+  variation measure. 
+  In this example, the priority
+  is computed as follows: if <code>[v0, v1, v2, v3]</code> are the 
+  four function values on the corners of a rectangular patch 
+  (in the order: top-right, top-left, bottom-left, bottom-right), then the
+  priority is computed as 
+  \[
+    realCyclicVariation([v_0, \dots, v_3]) := 
+      \sum_{i=0}^3
+        \left\vert v_i - v_{(i + 1) \, \textrm{mod} \, 4}\right\vert. 
+  \]
+  In this particular example, the function \(F_c\) takes values between 0
+  and <code>maxIters</code>, therefore, the minimum priority that we can 
+  assign to a patch is 0, and the maximum priority is <code>4 * maxIters</code>.
+</p>
+<p>
+  Finally, we specify the <code>id</code> of the canvas and some additional
+  settings that are common for all plots 
+  (number of iterations, a color palette).
+</p>
+
+<p>
+  Now, whenever we move the mouse, a new Julia set is 
+  rendered on the visible canvas:
+</p>
+{% highlight javascript %}
+  juliaResponsivePlot.redraw('visible', {re: re, im: im});
+{% endhighlight %}
+
+<p>
+  Whenever we click on the Mandelbrot set, a Julia set for the special 
+  chosen value is rendered into a back-buffer (called <code>'chosen'</code>):
+</p>
+{% highlight javascript %}
+  juliaResponsivePlot.redraw('chosen', {re: chosen_cRe, im: chosen_cIm});
+{% endhighlight %}
+
+<p> 
+  If we click on the Julia canvas, the content of the <code>'chosen'</code> 
+  buffer is copied to the <code>'visible'</code> canvas:
+</p>
+{% highlight javascript %}
+  juliaResponsivePlot.show('chosen');
+{% endhighlight %}
+
+<h2>Conclusion</h2>
+<p>
+The responsive level plot works as expected, and the code is even kind-of
+reusable. 
+However, the advantage of this (relatively complex) evaluation strategy 
+is not immediately obvious if one compares it to the straightforward 
+single-threaded line-by-line evaluation: it doesn't look much faster.
+For functions that can be easily evaluated using a GPU, this evaluation 
+strategy makes even less sense.
+Maybe I should try it out with a larger canvas and weirder functions, 
+where the advantage becomes more obvious.
+</p>
+
+<hr>
+<p>
+Code for this post: 
+<a id="attachment" href="{{site.baseurl}}/codeSnippets/levelPlot/">
+  levelPlot.js
+</a>
+</p>

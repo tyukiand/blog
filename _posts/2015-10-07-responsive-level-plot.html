@@ -1,0 +1,417 @@
+---
+title: Responsive level plot - implementation
+category: visualization
+layout: post
+date: 2015-10-07 10:00
+tags: [javascript, visualization, blog-documentation]
+localScripts: 
+  - "/codeSnippets/levelPlot/quasiPriorityQueue.js"
+  - "/codeSnippets/levelPlot/quadraticFractals.js"
+  - "/codeSnippets/levelPlot/functions.js"
+  - "/codeSnippets/levelPlot/onlyPqBsp.js"
+onload: "init(200);"
+commentsId: jsResponsiveLevelPlot_impl
+deactivateComments: false
+series: level-plot
+---
+
+<image src="{{ site.baseurl }}/images/levelPlot/juliaSetBsp.png"
+  width="400" 
+  height="400"
+  alt="Image of a binary space partitioning tree that loosely resembles 
+    the boundary of a Julia set for c = -1"
+>
+
+<p>
+  One of the requirements for this blog was that I should be able to
+  publish interactive plots and visualizations online. 
+  This post describes a little script that allows me to 
+  create responsive two-dimensional level plots. 
+  The implementation relies on binary plane partitioning in combination 
+  with a priority queue, and evaluates the most interesting regions of 
+  the plot first. Multiple patches of the function are evaluated in 
+  parallel using web-workers coordinated by a simple 
+  load balancer.
+</p>
+
+<!-- cut -->
+
+<p style="color: #AAAAAA;">
+  Warning: This is not a step-by-step tutorial.
+  The main function of the pieces of code below 
+  is to remind myself that the whole thing,
+  despite being entirely trivial, actually took some effort to get right.
+</p>
+
+<p>
+  There is a myriad of plotting libraries for JavaScript, but there seems to
+  be no good possibility to generate interactive two-dimensional level plots for
+  functions that take a long time to evaluate. I used it as an excuse to 
+  take a brief look at the <code>&lt;canvas&gt;</code>, 
+  JavaScript's typed arrays, and WebWorkers.
+</p>
+
+<p>
+  The goal is as follows: I want to generate level plots in
+  such a way that the more interesting regions are evaluated first, and
+  presented to the user immediately, before the function is evaluated for
+  each pixel of the canvas.
+</p>
+
+<p>
+  My solution can be found in the <a href="#attachment">
+  attached file <code>levelPlot.js</code></a>.
+</p>
+
+<p>
+  The main ingredients are: 
+  <ul>
+    <li>A load-balancer for the WebWorkers</li>
+    <li>A simple priority queue that allows us to evaluate the
+      more interesting function patches first
+    </li>
+    <li>Binary space partitioning of the plotted region
+      (we recursively divide the plotted region into smaller rectangles, 
+      estimate how "interesting" the function is in each rectangle, and
+      prioritize it accordingly)
+    </li>
+  </ul>
+  Figure 1 shows how these components work together to generate a reasonable
+  evaluation plan for a Julia set level plot for the function
+  \(z \mapsto z^2 + c\). Notice that the plotting
+  algorithm focuses on the details of the boundary of the Julia set first,
+  delaying the costly evaluation in the regions around the attractors.
+  This is exactly the behavior that we want to achieve: the algorithm shall
+  draw the interesting pieces of the function as fast as possible, and 
+  add the less interesting parts later.
+</p>
+
+<div class="row">
+  <div class="col-xs-12">
+    <figure class="centered">
+      <canvas
+        id = "juliaCanvas"
+        class="framed">
+      </canvas>
+      <figcaption
+        class="framed"
+        id = "juliaCanvasCaption"
+      >
+        <span>Fig. 1:</span> 
+        First 1000 patches of the binary space partition inserted into
+        the priority queue. The smaller patches will be scheduled first.
+        The coloring is random. The underlying function is the Julia-set
+        iteration, the constant is controlled by mouse motions 
+        (move the mouse to the center of left half of the square to get
+        c = -1).
+      </figcaption>
+    </figure>
+  </div>
+</div>
+
+<h2>Load Balancer</h2>
+<p>
+The load balancer requires the path to the <code>.js</code> file that 
+contains the code of the WebWorker. It generates the specified 
+number of WebWorkers, and attaches the user defined 
+<code>onJobDone</code> function as the <code>message</code>-listener to 
+each WebWorker.
+Internally, it maintains a queue with the jobs and a list of boolean flags 
+that show whether a WebWorker is currently occupied or idle. Here is the
+constructor and the member variables that represent the internal state of
+the <code>LoadBalancer</code>:
+</p>
+{% highlight javascript %}
+function LoadBalancer(
+  workerSourceFile, 
+  numWorkers, 
+  onJobDone
+) {
+  var workers = new Array();
+  var isOccupied = new Array();
+  var todos = new Array();
+  // [...]
+}
+{% endhighlight %}
+
+<p>
+  Here is how the WebWorkers are created:
+</p>
+{% highlight javascript %}
+for (var i = 0; i < numWorkers; i++) { (function(i) {
+  if (window.Worker) {
+    var w = new Worker(workerSourceFile);
+    w.addEventListener("message", function(msg) {
+      onJobDone(msg.data);
+      isOccupied[i] = false;
+      tryAssignJob(i);
+    });
+    workers.push(w);
+    isOccupied.push(false);
+  } else {
+     throw "Error: no web-worker support";
+  }
+})(i);}
+{% endhighlight %}
+<p>
+  The user-defined function <code>onJobDone</code> gets the data of 
+  the message returned by the WebWorker. 
+  In the above piece of code, we also 
+  see that as soon as a WebWorker
+  posts its answer, the <code>LoadBalancer</code> marks it as idle,
+  and immediately tries to reassign a new job to it: this is what 
+  ultimately balances the load across multiple workers.
+</p>
+<p>
+  The awkward <code>(function(i){ ... })(i);</code> construct is necessary
+  to close over the <code>i</code>-variable.
+   <a href="{{site.baseurl}}/programming-languages/javascript-scoping-closures-cheatsheet.html">
+     An earlier post
+   </a> explains why the code would not work without it.
+</p>
+<p>
+Assigning jobs is simple:
+we dequeue a job from the  
+<code>todos</code> queue, 
+send it to the worker, and
+mark the worker as occupied.
+</p>
+{% highlight javascript %}
+function tryAssignJob(idx) {
+  if (todos.length > 0 && !isOccupied[idx]) {
+    var job = todos.shift();
+    workers[idx].postMessage(job);
+    isOccupied[idx] = true;
+  }
+}
+{% endhighlight %}
+
+<h2>Priority queue</h2>
+<p>
+  We need some kind of priority queue in order to recompute and redraw the
+  most interesting regions first.
+  Since real priority queues are somewhat tricky to implement,
+  I used an "approximate" priority queue instead. 
+  The idea is to create a fixed number of bins, with a simple first-in-first-out
+  queue in each bin. Here is an excerpt with the most relevant parts:
+</p>
+{% highlight javascript %}
+function QuasiPriorityQueue(
+  maxPriority,
+  minPriority,
+  numBins
+) {
+  this.bins = new Array(numBins);
+  this.size = 0;
+
+  var lookingAtBin = numBins - 1;     // highest nonempty bin
+  var prioToBinFactor = (numBins - 1) / (maxPriority - minPriority);
+
+  // initialization
+  for (var b = 0; b < numBins; b++) {
+    this.bins[b] = []; 
+  }
+
+  /** Enqueues an element with specified priority */
+  this.enqueue = function(element, priority) {
+    var approxBinIdx = 
+      Math.floor((priority - minPriority) * prioToBinFactor);
+    var binIdx = 
+      Math.min(Math.max(approxBinIdx, 0), numBins - 1);
+    var bin = this.bins[binIdx];
+    bin.push(element);
+    this.size++;
+
+    // move the `lookingAt`-index up if necessary
+    if (lookingAtBin < binIdx) {
+      lookingAtBin = binIdx;
+    }
+  }
+
+  /** Dequeues an element from the topmost non-empty bin */
+  this.dequeue = function() {
+    if (this.isEmpty()) {
+      throw "Cannot dequeue element: queue is empty."
+    } else {
+      while (this.bins[lookingAtBin].length == 0) {
+        lookingAtBin--;
+      }
+      var bin = this.bins[lookingAtBin];
+      var res = bin.shift();
+      this.size--;
+      return res;
+    }
+  }
+
+  [...]
+}
+{% endhighlight %}
+<p>
+  For this to work, the user has to choose the <code>maxPriority</code> and
+  <code>minPriority</code> carefully, because otherwise there will be 
+  too many jobs with too different priorities in the first and/or the last
+  bin. If <code>minPriority</code> and <code>maxPriority</code> are chosen
+  badly, this "quasi-priority queue" will degenerate into a first-in-first-out
+  queue.
+</p>
+
+<h2>Binary plane partitioning</h2>
+
+<p>
+  Somewhat surprisingly (at least to me), pixel-aware binary plane 
+  partitioning was quite difficult to get right. 
+  It turned out to be very easy to make
+  a <code>+-1</code> mistake, or distort the function by a factor 
+  <code>n/(n-1)</code> somewhere. Here is what my current proposal for
+  horizontal partitioning looks like:
+</p>
+{% highlight javascript %}
+// split rectangle horizontally into [ A | B ]
+var dx = worldRect.width / (screnRect.width - 1);
+
+var aScrenWidth = Math.floor(screnRect.width / 2);
+var bScrenWidth = screnRect.width - aScrenWidth;
+var aScrenRight = screnRect.left + aScrenWidth;
+var bScrenLeft = screnRect.right - bScrenWidth;
+
+var aWorldWidth = (aScrenWidth - 1) * dx;
+var bWorldWidth = (bScrenWidth - 1) * dx;
+var aWorldRight = worldRect.left + aWorldWidth;
+var bWorldLeft = worldRect.right - bWorldWidth;
+ 
+var aTopRight = f(aWorldRight, worldRect.top);
+var aBottomRight = f(aWorldRight, worldRect.bottom);
+
+var bTopLeft = f(bWorldLeft, worldRect.top);
+var bBottomLeft = f(bWorldLeft, worldRect.bottom);
+    
+var a = new FunctionPatch(
+  new Rect(worldRect.left, aWorldRight, worldRect.bottom, worldRect.top),
+  new Rect(screnRect.left, aScrenRight, screnRect.bottom, screnRect.top),
+  [aTopRight, values[1], values[2], aBottomRight]
+);
+ 
+var b = new FunctionPatch(
+  new Rect(bWorldLeft, worldRect.right, worldRect.bottom, worldRect.top),
+  new Rect(bScrenLeft, screnRect.right, screnRect.bottom, screnRect.top),
+  [values[0], bTopLeft, bBottomLeft, values[3]]
+);
+ 
+return [a, b];
+{% endhighlight %}
+<p>
+  The vertical splitting is analogous.
+</p>
+<p>
+  In order to draw the most interesting regions of the plot before the less
+  interesting ones, we subdivide the plane recursively, and search for 
+  small rectangular patches with large differences between the values on
+  the corners. 
+</p>
+<p>
+  We begin with a rectangle that
+  covers the entire plotted region, 
+  and put it into the quasi-priority queue.
+</p>
+<p>
+  In each step, we dequeue a rectangular patch from the quasi-priority queue, 
+  and check whether it can be further subdivided. 
+  If it is small enough, we give it to the load balancer, and one of the 
+  workers immediately begins to evaluate the function in this region.
+</p>
+<p>
+  If the patch is too large, we split it into two smaller patches.
+  Then we evaluate the function on the corners of each 
+  new rectangular patch. Depending on how much the function varies on the
+  corners of the patch, we assign a priority to the patch, and put it back
+  into the priority queue.
+</p>
+<p>
+  This process repeats until the (quasi-) priority queue becomes empty.
+  Here is what the corresponding code looks like:
+</p>
+{% highlight javascript %}
+this.redraw = function(id, param) {
+  // clean load balancer's internal queue from obsolete jobs with 
+  // same id
+  loadBalancer.filterJobs(function(job) {
+    return job.id !== id;
+  });
+  var f = funcFactory(param);
+  ensureBufferExists(id);
+  var bb = backBuffers[id];
+  bb.param = param;
+  var queue = new QuasiPriorityQueue(approxMinZ, approxMaxZ, 16);
+  var entireArea = new FunctionPatch(
+    new Rect(minX, maxX, minY, maxY),
+    new Rect(
+      0, backBuffers.visible.canvas.width, 
+      0, backBuffers.visible.canvas.height
+    ),
+    [f(maxX, maxY), f(minX, maxY),
+     f(minX, minY), f(maxX, minY)]
+  )
+  queue.enqueue(entireArea, 0);
+  bb.numTodos = 0;
+  while(!queue.isEmpty()) {
+    var head = queue.dequeue();
+    if (head.screnRect.area <= 2048) {
+      loadBalancer.addJob(
+        {
+          id : id,
+          param : param,
+          screnRect : head.screnRect,
+          worldRect : head.worldRect,
+          paintingSettings: paintingSettings
+        }
+      );
+      bb.numTodos++;
+      // poke the load balancer so that it tries to 
+      // assign the new job to idle workers 
+      loadBalancer.assignJobs();
+    } else {
+      var ab = head.subdivide(f);
+      var a = ab[0];
+      var b = ab[1];
+      var aValue = variationMeasure(a.values);
+      var bValue = variationMeasure(b.values);
+      queue.enqueue(a, aValue);
+      queue.enqueue(b, bValue);
+    }
+  }
+};
+{% endhighlight %}
+<p>
+  This is the only place where the user-defined <code>variationMeasure</code>
+  is used (this is one of the parameters passed to the constructor of the
+  plot). For simple real-valued functions, the predefined function 
+  <code>levelPlot.realCyclicVariation</code> is a reasonable way to 
+  estimate how "interesting" the content of a patch is. In principle we could
+  use any function that accepts a list with the four values on the corners and 
+  returns some kind of variation-measure.
+</p>
+
+<p>
+  The current version of the script has another feature worth mentioning:
+  it can work with multiple named buffers. There is one special buffer that
+  has the identifier <code>'visible'</code>: this is the buffer attached to
+  the visible canvas. However, we can also call the above <code>redraw</code>
+  function with an <code>id</code> not equal to <code>'visible'</code>. 
+  This will trigger the creation of a new back-buffer, and the function will
+  be evaluated and plotted to this new buffer. Later, we can use the methods
+  <code>Plot.isReady(id)</code> and <code>Plot.show(id)</code> to check whether
+  the image in the back buffer is complete, and to copy its content to the
+  visible buffer.
+</p>
+
+<p>
+  The next post describes how to use the <code>levelPlot.js</code> script.
+</p>
+
+<hr>
+<p>
+Code for this post: 
+<a id="attachment" href="{{site.baseurl}}/codeSnippets/levelPlot/">
+  levelPlot.js
+</a>
+</p>

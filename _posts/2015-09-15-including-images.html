@@ -4,7 +4,7 @@ category: blog-documentation
 series: blog-setup
 layout: post
 date: 2015-09-15 20:30:45
-tags: blog-docs
+tags: blog-documentation
 deactivateComments: true
 ---
 
@@ -16,7 +16,7 @@ How to include images (again, just a little note for myself).
 
 <div class="backstage">
   <div>
-    <h2> BACKSTAGE AREA </h2>
+    <h2> <span style="text-decoration:line-through;">RESTRICTED</span> AREA </h2>
     <p>
     This page describes the usage of the blog software from
     author's point of view. It is probably not what you are 
@@ -56,14 +56,16 @@ seems nearly impossible to me.
 </p>
 
 <p>
-Just in case that I should ever try to rewrite the style for the figure
+Just in case that I should ever consider to rewrite the style for the figure
 positioning, here is a list of strange rules to keep in mind:
 <ul>
   <li>You can, theoretically, center stuff with <code>margin: auto;</code></li>
   <li>It does not work if the <code>width</code> is not set explicitly</li>
   <li>It does not work if the element has <code>display</code> not equal to
     <code>block</code></li> 
-
+  <li>There are no rules for code <code>canvas</code>, its box model seems to
+    be completely different from that of an <code>img</code>...
+  </li>
 </ul>
 Here is what I've come up with for now:
 <ol>
@@ -81,7 +83,8 @@ Here is what I've come up with for now:
     Add <code>class="framed"</code> to both image and caption.
   </li>
   <li>
-    Add <code>style="max-width: &lt;N&gt;px;"</code> to both image and caption.
+    Add <code>style="width: x%; max-width: &lt;N&gt;px;"</code> 
+    to both image and caption.
     Keep this size consistent, otherwise the little rounded rectangle around
     the image will fall apart.
   </li>
@@ -94,7 +97,6 @@ as follows:
   border-style: solid;
   background-color: #EEEEFF;
   padding: 5px;
-  width: 100%;
   margin-left: auto;
   margin-right: auto;
   display: block;
@@ -167,8 +169,8 @@ Two figures in a row:
   <img 
     src="{{ site.baseurl }}/images/testFigure/escherWarped.png"
     class="framed"
-    style="max-width:300px;">
-  <figcaption class="framed" style="max-width:300px;">
+    style="width: 100%; max-width:300px;">
+  <figcaption class="framed" style="width: 100%; max-width:300px;">
     <span>Fig. 2:</span> Warped portrait of M.C. Escher.
   </figcaption>
 </figure>
@@ -176,8 +178,8 @@ Two figures in a row:
   <img
     src="{{ site.baseurl }}/images/testFigure/escherSmile.png"
     class="framed"
-    style="max-width:300px;">
-  <figcaption class="framed" style="max-width: 300px;">
+    style="width: 100%; max-width:300px;">
+  <figcaption class="framed" style="width: 100%; max-width: 300px;">
     <span>Fig. 3:</span> Warped portrait of M.C. Escher.
   </figcaption>
 </figure>
@@ -190,8 +192,8 @@ Two figures in a row:
   <img 
     src="{{ site.baseurl }}/images/testFigure/escherWarped.png"
     class="framed"
-    style="max-width:300px;">
-  <figcaption class="framed" style="max-width:300px;">
+    style="width: 100%; max-width:300px;">
+  <figcaption class="framed" style="width: 100%; max-width:300px;">
     <span>Fig. 2:</span> Warped portrait of M.C. Escher.
   </figcaption>
 </figure>
@@ -199,8 +201,8 @@ Two figures in a row:
   <img
     src="{{ site.baseurl }}/images/testFigure/escherSmile.png"
     class="framed"
-    style="max-width:300px;">
-  <figcaption class="framed" style="max-width: 300px;">
+    style="width: 100%; max-width:300px;">
+  <figcaption class="framed" style="width: 100%; max-width: 300px;">
     <span>Fig. 3:</span> Warped portrait of M.C. Escher.
   </figcaption>
 </figure>
@@ -214,8 +216,8 @@ Three images in a row:
   <img 
     src="{{ site.baseurl }}/images/testFigure/escherSmile.png"
     class="framed"
-    style="max-width:200px;">
-  <figcaption class="framed" style="max-width:200px;">
+    style="width: 100%; max-width:200px;">
+  <figcaption class="framed" style="width: 100%; max-width:200px;">
     <span>Fig. 4:</span> Caption 
   </figcaption>
 </figure>
@@ -223,8 +225,8 @@ Three images in a row:
   <img 
     src="{{ site.baseurl }}/images/testFigure/escherSmile.png"
     class="framed"
-    style="max-width:200px;">
-  <figcaption class="framed" style="max-width:200px;">
+    style="width: 100%; max-width:200px;">
+  <figcaption class="framed" style="width: 100%; max-width:200px;">
     <span>Fig. 5:</span> Caption
   </figcaption>
 </figure>
@@ -232,8 +234,8 @@ Three images in a row:
   <img 
     src="{{ site.baseurl }}/images/testFigure/escherSmile.png"
     class="framed"
-    style="max-width:200px;">
-  <figcaption class="framed" style="max-width:200px;">
+    style="width: 100%; max-width:200px;">
+  <figcaption class="framed" style="width: 100%; max-width:200px;">
     <span>Fig. 6:</span> Caption
   </figcaption>
 </figure>
@@ -245,8 +247,8 @@ Three images in a row:
   <img 
     src="{{ site.baseurl }}/images/testFigure/escherSmile.png"
     class="framed"
-    style="max-width:200px;">
-  <figcaption class="framed" style="max-width:200px;">
+    style="width: 100%; max-width:200px;">
+  <figcaption class="framed" style="width: 100%; max-width:200px;">
     <span>Fig. 4:</span> Caption 
   </figcaption>
 </figure>
@@ -254,8 +256,8 @@ Three images in a row:
   <img 
     src="{{ site.baseurl }}/images/testFigure/escherSmile.png"
     class="framed"
-    style="max-width:200px;">
-  <figcaption class="framed" style="max-width:200px;">
+    style="width: 100%; max-width:200px;">
+  <figcaption class="framed" style="width: 100%; max-width:200px;">
     <span>Fig. 5:</span> Caption
   </figcaption>
 </figure>
@@ -263,8 +265,8 @@ Three images in a row:
   <img 
     src="{{ site.baseurl }}/images/testFigure/escherSmile.png"
     class="framed"
-    style="max-width:200px;">
-  <figcaption class="framed" style="max-width:200px;">
+    style="width: 100%; max-width:200px;">
+  <figcaption class="framed" style="width: 100%; max-width:200px;">
     <span>Fig. 6:</span> Caption
   </figcaption>
 </figure>

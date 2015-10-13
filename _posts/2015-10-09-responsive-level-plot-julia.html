@@ -74,7 +74,7 @@ series: level-plot
 
 <p> In the rest of this post, we will describe how it is implemented. </p>
 
-<h2> The WebWorker code </h2>
+<h2> WebWorker code </h2>
 <p>
 The <code>levelPlot.js</code> script makes use of the WebWorkers.
 The easiest way to implement a <code>levelPlot.js</code>-compatible WebWorker 
@@ -196,6 +196,7 @@ onmessage = function(msg) {
   <code>red</code>, <code>green</code> and <code>blue</code>.
 </p>
 
+<h2>Constructor <code>levelPlot.Plot</code></h2>
 <p> 
   Here is what the <code>levelPlot.Plot</code>-constructor call looks like 
   in this example:
@@ -267,6 +268,7 @@ juliaSetResponsivePlot = new levelPlot.Plot(
   (number of iterations, a color palette).
 </p>
 
+<h2>Repainting, using named back-buffers</h2>
 <p>
   Now, whenever we move the mouse, a new Julia set is 
   rendered on the visible canvas:
